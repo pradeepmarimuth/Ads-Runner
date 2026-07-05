@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile | Ads Runner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{space:{950:'#020617',900:'#0f172a',800:'#1e293b'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body{font-family:'Outfit',sans-serif;background:#0d0d1a;background-image:radial-gradient(at 50% 0%,rgba(245,158,11,.10) 0,transparent 60%);}
+    input,textarea{outline:none;}
+    .upload-ring{border:2px dashed rgba(71,85,105,.5);transition:all .2s;}
+    .upload-ring:hover,.upload-ring.drag-over{border-color:#f59e0b;background:rgba(245,158,11,.05);}
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex items-start justify-center p-6 md:p-10">
+
+  {% set role_colors = {'Influencer':'purple','AdPublisher':'cyan','Customer':'emerald','Admin':'pink'} %}
+  {% set rc = role_colors.get(user.role, 'slate') %}
+
+  <div class="w-full max-w-xl space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <a href="/profile/{{ user.id }}" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-400 hover:text-white transition-all">
+        <i data-lucide="arrow-left" class="h-4 w-4"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-extrabold text-white">Edit Profile</h1>
+        <p class="text-slate-400 text-sm">Update your name, photo, and public info.</p>
+      </div>
+    </div>
+
+    <!-- Avatar Upload Card -->
+    <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6">
+      <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Profile Photo</p>
+
+      <div class="flex flex-col sm:flex-row items-center gap-6">
+        <!-- Avatar Preview Circle -->
+        <div class="relative shrink-0">
+          <div class="h-28 w-28 rounded-full overflow-hidden border-4 border-slate-800 bg-gradient-to-tr from-{{ rc }}-600 to-{{ rc }}-400 flex items-center justify-center shadow-xl" id="avatar-ring">
+            {% if user.avatar_url %}
+              <img id="avatar-preview" src="{{ user.avatar_url }}" class="h-full w-full object-cover" onerror="this.style.display='none'">
+            {% else %}
+              <span id="avatar-initial" class="text-white font-bold text-4xl">{{ user.name[0] }}</span>
+            {% endif %}
+          </div>
+          <!-- Overlay click to change -->
+          <label for="avatar-file-input" class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 hover:opacity-100 cursor-pointer transition-opacity" title="Upload photo">
+            <i data-lucide="camera" class="h-7 w-7 text-white"></i>
+          </label>
+        </div>
+
+        <!-- Upload options -->
+        <div class="flex-grow w-full space-y-3">
+          <!-- File Upload -->
+          <label for="avatar-file-input" class="upload-ring flex items-center gap-3 rounded-xl p-3 cursor-pointer">
+            <div class="p-2 bg-slate-800 rounded-lg"><i data-lucide="upload" class="h-4 w-4 text-cyan-400"></i></div>
+            <div>
+              <p class="text-sm font-semibold text-white">Upload from device</p>
+              <p class="text-[11px] text-slate-500">JPG, PNG, GIF, WEBP — max 10 MB</p>
+            </div>
+          </label>
+          <input id="avatar-file-input" type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="handleAvatarFile(this)">
+
+          <!-- OR divider -->
+          <div class="flex items-center gap-3"><div class="flex-grow h-px bg-slate-800"></div><span class="text-[10px] text-slate-600 font-mono">OR paste URL</span><div class="flex-grow h-px bg-slate-800"></div></div>
+
+          <!-- URL input -->
+          <input id="avatar-url-input" type="url" value="{{ user.avatar_url or '' }}" placeholder="https://example.com/photo.jpg"
+            class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500/50 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-600 transition-colors"
+            oninput="previewAvatarUrl(this.value)">
+
+          <!-- Upload progress -->
+          <div id="upload-status" class="hidden text-xs font-mono text-cyan-400 flex items-center gap-2">
+            <div class="h-3 w-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+            Uploading...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Info Form -->
+    <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-5">
+
+      <!-- Display Name — NOW EDITABLE -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Display Name</label>
+        <input id="f-name" type="text" value="{{ user.name }}"
+          placeholder="Your display name"
+          class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500/60 rounded-xl py-2.5 px-4 text-sm text-slate-200 placeholder-slate-600 transition-colors">
+        <p class="text-slate-600 text-[10px] mt-1">Min 2 characters.</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Tagline / Headline</label>
+        <input id="f-tagline" type="text" value="{{ user.tagline or '' }}" placeholder="e.g. Anti-Gravity Content Creator"
+          class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500/60 rounded-xl py-2.5 px-4 text-sm text-slate-200 placeholder-slate-600 transition-colors">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Bio / About</label>
+        <textarea id="f-bio" rows="4" placeholder="Tell the network about yourself..."
+          class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500/60 rounded-xl py-2.5 px-4 text-sm text-slate-200 placeholder-slate-600 resize-none transition-colors">{{ user.bio or '' }}</textarea>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Location</label>
+          <input id="f-location" type="text" value="{{ user.location or '' }}" placeholder="New Orbit City"
+            class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500/60 rounded-xl py-2.5 px-4 text-sm text-slate-200 placeholder-slate-600 transition-colors">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Website</label>
+          <input id="f-website" type="url" value="{{ user.website or '' }}" placeholder="https://yoursite.com"
+            class="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500/60 rounded-xl py-2.5 px-4 text-sm text-slate-200 placeholder-slate-600 transition-colors">
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div id="form-error" class="hidden p-3 bg-red-950/20 border border-red-500/20 text-red-400 text-xs rounded-xl font-mono"></div>
+      <div id="form-success" class="hidden p-3 bg-emerald-950/20 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl font-mono flex items-center gap-2">
+        <i data-lucide="check-circle" class="h-4 w-4"></i> Profile saved successfully! Redirecting...
+      </div>
+
+      <div class="flex gap-3 pt-1">
+        <button onclick="saveProfile()" id="save-btn"
+          class="flex-grow flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-sm font-bold shadow transition-all hover:-translate-y-0.5">
+          <i data-lucide="save" class="h-4 w-4"></i> Save Changes
+        </button>
+        <a href="/profile/{{ user.id }}" class="px-5 py-3 bg-slate-800 border border-slate-700 text-slate-400 hover:text-white rounded-xl text-sm font-semibold transition-colors">Cancel</a>
+      </div>
+    </div>
+
+    <!-- Danger Zone Card -->
+    <div class="bg-red-950/20 border border-red-500/20 rounded-2xl p-6 mt-6 space-y-4">
+      <div>
+        <h3 class="text-lg font-bold text-red-400 flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="h-5 w-5 text-red-500"></i> Danger Zone
+        </h3>
+        <p class="text-slate-400 text-xs mt-1">Once you delete your account, there is no going back. All campaigns, messages, and posts will be deleted.</p>
+      </div>
+      <button onclick="confirmDeleteAccount()" class="w-full py-3 bg-red-700 hover:bg-red-600 text-white rounded-xl text-sm font-bold shadow transition-all flex items-center justify-center gap-2">
+        <i data-lucide="trash-2" class="h-4 w-4"></i> Delete My Account
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // Currently saved avatar URL (updated after upload)
+    let currentAvatarUrl = '{{ user.avatar_url or "" }}';
+
+    /* ─── Avatar file upload ─── */
+    async function handleAvatarFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      // Instant local preview
+      const reader = new FileReader();
+      reader.onload = e => updateAvatarPreview(e.target.result);
+      reader.readAsDataURL(file);
+
+      // Upload to server
+      const status = document.getElementById('upload-status');
+      status.classList.remove('hidden');
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res  = await fetch('/api/upload', {method:'POST', body:fd});
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Upload failed');
+        currentAvatarUrl = data.url;
+        document.getElementById('avatar-url-input').value = data.url;
+        status.innerHTML = '<svg class="h-3 w-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg> Uploaded!';
+        status.classList.remove('hidden');
+        setTimeout(() => status.classList.add('hidden'), 2000);
+      } catch(e) {
+        status.innerHTML = `<span class="text-red-400">⚠ ${e.message}</span>`;
+        setTimeout(() => status.classList.add('hidden'), 3000);
+      }
+    }
+
+    function previewAvatarUrl(url) {
+      currentAvatarUrl = url;
+      updateAvatarPreview(url);
+    }
+
+    function updateAvatarPreview(src) {
+      let img = document.getElementById('avatar-preview');
+      const initial = document.getElementById('avatar-initial');
+      if (!img) {
+        img = document.createElement('img');
+        img.id = 'avatar-preview';
+        img.className = 'h-full w-full object-cover';
+        document.getElementById('avatar-ring').appendChild(img);
+      }
+      img.src = src;
+      img.style.display = 'block';
+      if (initial) initial.style.display = 'none';
+    }
+
+    /* ─── Save profile ─── */
+    async function saveProfile() {
+      const errBox = document.getElementById('form-error');
+      const okBox  = document.getElementById('form-success');
+      const btn    = document.getElementById('save-btn');
+      errBox.classList.add('hidden');
+      okBox.classList.add('hidden');
+
+      const name = document.getElementById('f-name').value.trim();
+      if (name.length < 2) {
+        errBox.textContent = 'Display name must be at least 2 characters.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...';
+
+      const avatarUrl = document.getElementById('avatar-url-input').value.trim() || currentAvatarUrl;
+
+      const payload = {
+        name,
+        avatar_url: avatarUrl,
+        tagline:    document.getElementById('f-tagline').value.trim(),
+        bio:        document.getElementById('f-bio').value.trim(),
+        location:   document.getElementById('f-location').value.trim(),
+        website:    document.getElementById('f-website').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/profile/update', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('Server error');
+        okBox.classList.remove('hidden');
+        setTimeout(() => window.location.href = '/profile/{{ user.id }}', 1000);
+      } catch(e) {
+        errBox.textContent = 'Failed to save. Please try again.';
+        errBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Save Changes';
+      }
+    }
+
+    /* ─── Delete Account ─── */
+    async function confirmDeleteAccount() {
+      if (!confirm("Are you absolutely sure you want to delete your account? This action is permanent and cannot be undone.")) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/profile/delete', { method: 'POST' });
+        if (res.ok) {
+          alert("Your account has been deleted.");
+          window.location.href = '/signup';
+        } else {
+          const data = await res.json();
+          alert(data.message || "Failed to delete account");
+        }
+      } catch (e) {
+        alert("An error occurred. Please try again.");
+      }
+    }
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

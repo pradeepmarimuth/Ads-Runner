@@ -1,0 +1,123 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+database/marketing.db
+database/*.db
+
+# Uploads
+frontend/static/uploads/*
+!frontend/static/uploads/.gitkeep
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.hypothesis/
+
+# Docker
+.docker/
+
+# Deployment
+*.pid
+*.sock
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Ollama (if running locally)
+OllamaSetup.exe
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Redis dumps
+dump.rdb
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Node modules (if using npm)
+node_modules/
+package-lock.json
+
+# Build artifacts
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/

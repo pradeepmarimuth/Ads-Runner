@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feed | Ads Runner</title>
+  <meta name="description" content="Your Ads Runner social feed — posts, reels, and connections.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ══════════════════════════════════════════════════
+       ROOT & RESET
+    ══════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #000;
+      --bg-card:  #111;
+      --bg-input: #1a1a1a;
+      --border:   #262626;
+      --text:     #f5f5f5;
+      --text-sec: #a8a8a8;
+      --text-ter: #737373;
+      --accent:   #0095f6;
+      --accent-h: #1aa3ff;
+      --red:      #ef4444;
+      --purple:   #a855f7;
+      --cyan:     #22d3ee;
+      --emerald:  #34d399;
+      --pink:     #ec4899;
+
+      /* Gradient ring colors for roles */
+      --ring-purple: linear-gradient(135deg,#a855f7,#ec4899);
+      --ring-cyan:   linear-gradient(135deg,#22d3ee,#0095f6);
+      --ring-emerald:linear-gradient(135deg,#34d399,#059669);
+      --ring-pink:   linear-gradient(135deg,#ec4899,#f43f5e);
+      --ring-slate:  linear-gradient(135deg,#64748b,#475569);
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; }
+    a { text-decoration: none; color: inherit; }
+    button { background: none; border: none; cursor: pointer; color: inherit; font-family: inherit; }
+    input, textarea { font-family: inherit; color: var(--text); background: transparent; border: none; outline: none; }
+    img, video { display: block; }
+    .hidden { display: none !important; }
+    .flex    { display: flex; }
+    .items-center { align-items: center; }
+    .gap-2   { gap: 8px; }
+    .gap-3   { gap: 12px; }
+    .shrink-0{ flex-shrink: 0; }
+    .min-w-0 { min-width: 0; }
+    .flex-grow { flex-grow: 1; }
+    .truncate { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+    /* ══════════════════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════════════════ */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Left Sidebar ─────────────────────────────── */
+    .ig-sidebar {
+      width: 244px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      border-right: 1px solid var(--border);
+      background: var(--bg);
+      padding: 12px 12px 20px;
+      overflow-y: auto;
+    }
+    .ig-brand {
+      padding: 16px 12px 20px;
+      margin-bottom: 4px;
+    }
+    .ig-brand-logo {
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg,#f59e0b,#f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ig-brand-sub {
+      font-size: 9px;
+      color: var(--text-ter);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .ig-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+      transition: background 0.15s;
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
+    .ig-nav-item:hover { background: #1a1a1a; }
+    .ig-nav-item.active { font-weight: 700; }
+    .ig-nav-icon { width: 26px; height: 26px; flex-shrink: 0; }
+    .ig-nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .ig-sidebar-user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      transition: background 0.15s;
+    }
+    .ig-sidebar-user:hover { background: #1a1a1a; }
+    .ig-sidebar-uname { font-size: 14px; font-weight: 700; }
+    .ig-sidebar-tagline { font-size: 12px; color: var(--text-sec); }
+
+    /* ── Mobile Bottom Nav ────────────────────────── */
+    .ig-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      height: 56px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      z-index: 100;
+      align-items: center;
+      justify-content: space-around;
+    }
+    .ig-bottom-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px 16px;
+      color: var(--text);
+      font-size: 10px;
+    }
+    .ig-bottom-btn svg { width: 24px; height: 24px; }
+
+    /* ── Main Feed Column ──────────────────────────── */
+    .ig-feed-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 0;
+      padding-bottom: 80px;
+    }
+    .ig-feed-inner {
+      width: 100%;
+      max-width: 470px;
+      padding: 0;
+    }
+
+    /* ── Right Sidebar ────────────────────────────── */
+    .ig-right-col {
+      width: 320px;
+      flex-shrink: 0;
+      padding: 24px 16px;
+    }
+
+    /* ══════════════════════════════════════════════════
+       AVATAR SYSTEM
+    ══════════════════════════════════════════════════ */
+    .ig-avatar {
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .ig-avatar.border-purple { border-color: var(--purple); }
+    .ig-avatar.border-cyan   { border-color: var(--cyan); }
+    .ig-avatar.border-emerald{ border-color: var(--emerald); }
+    .ig-avatar.border-pink   { border-color: var(--pink); }
+    .ig-avatar.border-slate  { border-color: #64748b; }
+    .ig-avatar-init { border: none; }
+    .av-purple  { background: linear-gradient(135deg,#a855f7,#7c3aed); }
+    .av-cyan    { background: linear-gradient(135deg,#22d3ee,#0891b2); }
+    .av-emerald { background: linear-gradient(135deg,#34d399,#059669); }
+    .av-pink    { background: linear-gradient(135deg,#ec4899,#be185d); }
+    .av-slate   { background: linear-gradient(135deg,#64748b,#334155); }
+
+    /* ══════════════════════════════════════════════════
+       ROLE BADGE
+    ══════════════════════════════════════════════════ */
+    .role-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .role-purple  { background: rgba(168,85,247,.15); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
+    .role-cyan    { background: rgba(34,211,238,.12); color: #67e8f9; border: 1px solid rgba(34,211,238,.25); }
+    .role-emerald { background: rgba(52,211,153,.12); color: #6ee7b7; border: 1px solid rgba(52,211,153,.25); }
+    .role-pink    { background: rgba(236,72,153,.12); color: #f9a8d4; border: 1px solid rgba(236,72,153,.25); }
+    .role-slate   { background: rgba(100,116,139,.15); color: #94a3b8; border: 1px solid rgba(100,116,139,.3); }
+
+    /* ══════════════════════════════════════════════════
+       STORIES / REELS STRIP
+    ══════════════════════════════════════════════════ */
+    .ig-stories-wrap {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .ig-stories-wrap::-webkit-scrollbar { display: none; }
+    .ig-stories-row {
+      display: flex;
+      gap: 16px;
+      padding: 0 16px;
+    }
+    .reel-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .reel-ring {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ring-purple  { background: var(--ring-purple); }
+    .ring-cyan    { background: var(--ring-cyan); }
+    .ring-emerald { background: var(--ring-emerald); }
+    .ring-pink    { background: var(--ring-pink); }
+    .ring-slate   { background: linear-gradient(135deg,#64748b,#475569); }
+    .reel-inner {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .reel-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .reel-init {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .reel-name {
+      font-size: 11px;
+      color: var(--text-sec);
+      max-width: 64px;
+      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .reel-thumb { display: none; } /* hidden thumb, ring is the avatar */
+
+    /* Post-your-story button */
+    .ig-add-story {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .ig-add-story-ring {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .ig-add-story-ring:hover { border-color: var(--text-sec); }
+    .ig-add-story-plus {
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #fff;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .ig-add-story-label { font-size: 11px; color: var(--text-sec); }
+
+    /* ══════════════════════════════════════════════════
+       POST CARD
+    ══════════════════════════════════════════════════ */
+    .ig-post-card {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    /* Header */
+    .ig-post-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 10px;
+    }
+    .ig-username {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .ig-username:hover { text-decoration: underline; }
+    .ig-dot { color: var(--text-ter); font-size: 12px; }
+    .ig-timestamp { font-size: 12px; color: var(--text-ter); }
+    .ig-tagline { font-size: 11px; color: var(--text-ter); margin-top: 1px; }
+    .ig-more-btn { margin-left: auto; color: var(--text); padding: 4px; border-radius: 6px; }
+    .ig-more-btn:hover { background: #1a1a1a; }
+
+    /* Media */
+    .ig-media-wrap {
+      position: relative;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+    .ig-media {
+      width: 100%;
+      max-height: 600px;
+      object-fit: contain;
+      display: block;
+    }
+    .ig-reel-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Actions */
+    .ig-actions {
+      display: flex;
+      align-items: center;
+      padding: 6px 12px 2px;
+    }
+    .ig-actions-left { display: flex; align-items: center; gap: 4px; }
+    .ig-action-btn {
+      padding: 8px;
+      border-radius: 50%;
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ig-action-btn:hover { background: rgba(255,255,255,.06); }
+    .ig-action-btn:active { transform: scale(0.88); }
+    .ig-action-icon { width: 24px; height: 24px; transition: fill 0.15s, stroke 0.15s; }
+    .ig-action-btn.liked .like-icon { fill: var(--red); stroke: var(--red); }
+    .ig-action-btn.bookmarked .bookmark-icon { fill: currentColor; }
+    @keyframes like-pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+    .like-pop { animation: like-pop 0.3s ease; }
+
+    /* Like count row */
+    .ig-like-row { padding: 0 16px 4px; }
+    .ig-like-count { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* Caption */
+    .ig-caption { padding: 4px 16px 6px; font-size: 14px; line-height: 1.5; }
+    .ig-caption-user { font-weight: 700; margin-right: 6px; }
+    .ig-caption-text { color: var(--text-sec); }
+
+    /* View comments button */
+    .ig-view-comments {
+      display: block;
+      padding: 2px 16px 8px;
+      font-size: 14px;
+      color: var(--text-ter);
+      text-align: left;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .ig-view-comments:hover { color: var(--text-sec); }
+
+    /* ══════════════════════════════════════════════════
+       INLINE COMMENTS PANEL
+    ══════════════════════════════════════════════════ */
+    .ig-comments-panel {
+      background: #0d0d0d;
+      border-top: 1px solid var(--border);
+    }
+    .ig-comments-list {
+      max-height: 240px;
+      overflow-y: auto;
+      padding: 12px 16px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: #262626 transparent;
+    }
+    .ig-comments-loading { font-size: 12px; color: var(--text-ter); text-align: center; padding: 8px; }
+    .ig-no-comments { font-size: 13px; color: var(--text-ter); text-align: center; padding: 12px; }
+    .ig-comment-item { display: flex; gap: 10px; align-items: flex-start; }
+    .ig-comment-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid transparent;
+      flex-shrink: 0;
+    }
+    .ig-comment-av-init {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .ig-comment-user { font-size: 13px; font-weight: 700; margin-right: 6px; }
+    .ig-comment-body { font-size: 13px; color: var(--text-sec); line-height: 1.4; }
+    .ig-comment-meta { font-size: 11px; color: var(--text-ter); margin-top: 3px; }
+
+    /* Comment input row */
+    .ig-comment-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+    .ig-comment-input {
+      flex: 1;
+      background: transparent;
+      font-size: 14px;
+      color: var(--text);
+      placeholder-color: var(--text-ter);
+      line-height: 1.4;
+    }
+    .ig-comment-input::placeholder { color: var(--text-ter); }
+    .ig-comment-post-btn {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      transition: color 0.15s;
+      padding: 4px 8px;
+    }
+    .ig-comment-post-btn:hover { color: var(--accent-h); }
+
+    /* ══════════════════════════════════════════════════
+       SUGGESTIONS SIDEBAR
+    ══════════════════════════════════════════════════ */
+    .ig-right-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-sec);
+      margin-bottom: 16px;
+    }
+    .ig-sugg-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .ig-sugg-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid transparent;
+      flex-shrink: 0;
+    }
+    .ig-sugg-init {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .ig-sugg-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .ig-sugg-name:hover { text-decoration: underline; }
+    .ig-sugg-role { font-size: 12px; color: var(--text-ter); }
+    .ig-follow-btn {
+      margin-left: auto;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .ig-follow-btn:hover { color: var(--accent-h); }
+    .ig-follow-btn.requested { color: var(--text-ter); }
+    .ig-sidebar-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .ig-sidebar-pname { font-size: 14px; font-weight: 700; }
+    .ig-sidebar-ptag  { font-size: 12px; color: var(--text-ter); }
+    .ig-sidebar-switch { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer; }
+
+    /* ══════════════════════════════════════════════════
+       COMPOSE MODAL (Instagram style)
+    ══════════════════════════════════════════════════ */
+    .ig-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .ig-compose-modal {
+      background: var(--bg-card);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .ig-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ig-modal-title { font-size: 16px; font-weight: 700; text-align: center; flex: 1; }
+    .ig-modal-close {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s;
+    }
+    .ig-modal-close:hover { background: #1a1a1a; }
+    /* Tabs */
+    .ig-compose-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    .ig-compose-tab {
+      flex: 1;
+      padding: 12px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-ter);
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .ig-compose-tab.active { color: var(--text); border-bottom-color: var(--text); }
+    /* Author */
+    .ig-compose-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 8px;
+      flex-shrink: 0;
+    }
+    .ig-compose-name { font-size: 14px; font-weight: 700; }
+    .ig-compose-privacy { font-size: 12px; color: var(--text-ter); }
+    /* Textarea */
+    .ig-compose-text {
+      padding: 4px 16px 12px;
+      flex-shrink: 0;
+    }
+    .ig-compose-text textarea {
+      width: 100%;
+      font-size: 16px;
+      resize: none;
+      background: transparent;
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 80px;
+    }
+    .ig-compose-text textarea::placeholder { color: var(--text-ter); }
+    /* Media area */
+    .ig-compose-media {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 12px;
+      min-height: 0;
+    }
+    .ig-drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .ig-drop-zone:hover, .ig-drop-zone.dragging {
+      border-color: var(--accent);
+      background: rgba(0,149,246,.05);
+    }
+    .ig-drop-icon { width: 48px; height: 48px; color: var(--text-ter); margin: 0 auto 12px; }
+    .ig-drop-title { font-size: 15px; font-weight: 600; color: var(--text-sec); }
+    .ig-drop-sub { font-size: 12px; color: var(--text-ter); margin-top: 4px; }
+    .ig-upload-btn {
+      margin-top: 16px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 20px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .ig-upload-btn:hover { background: var(--accent-h); }
+    .ig-url-input {
+      width: 100%;
+      margin-top: 12px;
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .ig-url-input:focus { border-color: var(--accent); }
+    .ig-url-input::placeholder { color: var(--text-ter); }
+    /* Image preview */
+    .ig-preview-wrap {
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ig-preview-img { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+    .ig-preview-remove {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: rgba(0,0,0,.7);
+      color: #fff;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      transition: background 0.15s;
+    }
+    .ig-preview-remove:hover { background: rgba(0,0,0,.9); }
+    /* Upload status */
+    .ig-upload-status { display: flex; align-items: center; gap: 8px; padding: 8px 0; font-size: 13px; color: var(--accent); }
+    .ig-spinner { width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Share button */
+    .ig-modal-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .ig-btn-primary {
+      flex: 1;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 9px 20px;
+      border-radius: 8px;
+      transition: background 0.15s;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    .ig-btn-primary:hover { background: var(--accent-h); }
+    .ig-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ig-btn-secondary {
+      background: #1a1a1a;
+      color: var(--text-sec);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .ig-btn-secondary:hover { background: #222; }
+
+    /* ══════════════════════════════════════════════════
+       REEL MODAL
+    ══════════════════════════════════════════════════ */
+    .ig-reel-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.92);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ig-reel-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.1);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+    .ig-reel-close:hover { background: rgba(255,255,255,.2); }
+    .reel-modal-media {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      max-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .reel-modal-video { width: 100%; max-height: 85vh; object-fit: contain; border-radius: 12px; }
+    .reel-modal-img   { width: 100%; max-height: 85vh; object-fit: contain; border-radius: 12px; }
+    .reel-modal-text  {
+      width: 100%; min-height: 200px;
+      background: #111;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      font-size: 18px;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.6;
+    }
+    .reel-overlay-info {
+      position: absolute;
+      bottom: 80px; left: 12px; right: 70px;
+    }
+    .reel-actions-side {
+      position: absolute;
+      right: -56px;
+      bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .reel-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .reel-action-count { font-size: 12px; font-weight: 600; color: #fff; }
+
+    /* ══════════════════════════════════════════════════
+       EMPTY / LOADING
+    ══════════════════════════════════════════════════ */
+    .ig-empty {
+      text-align: center;
+      padding: 64px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .ig-empty-icon {
+      width: 80px; height: 80px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ig-skeleton {
+      background: linear-gradient(90deg,#1a1a1a 0%,#222 50%,#1a1a1a 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ══════════════════════════════════════════════════
+       COMPOSE TRIGGER (top of feed)
+    ══════════════════════════════════════════════════ */
+    .ig-compose-trigger {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .ig-compose-fake-input {
+      flex: 1;
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 9px 18px;
+      font-size: 14px;
+      color: var(--text-ter);
+      cursor: pointer;
+      transition: border-color 0.15s;
+      text-align: left;
+    }
+    .ig-compose-fake-input:hover { border-color: var(--text-sec); }
+
+    /* ══════════════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .ig-right-col { display: none; }
+    }
+    @media (max-width: 768px) {
+      .ig-sidebar { display: none; }
+      .ig-bottom-nav { display: flex; }
+      .ig-feed-col { padding-bottom: 72px; }
+    }
+  </style>
+</head>
+<body>
+
+{% set role_colors = {'Influencer':'purple','AdPublisher':'cyan','Customer':'emerald','Admin':'pink'} %}
+{% set rc = role_colors.get(user.role, 'slate') %}
+
+<div class="app-layout">
+
+  <!-- ════════════════════ LEFT SIDEBAR ════════════════════ -->
+  <aside class="ig-sidebar">
+    <div class="ig-brand">
+      <div class="ig-brand-logo">Ads Runner</div>
+      <div class="ig-brand-sub">Professional Network</div>
+    </div>
+
+    <nav>
+      <a href="/" class="ig-nav-item">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="/feed" class="ig-nav-item active">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/></svg>
+        Feed
+      </a>
+      <a href="/network" class="ig-nav-item">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Network
+      </a>
+      <a href="/messages" class="ig-nav-item">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Messages
+        {% if unread > 0 %}
+        <span class="ig-nav-badge">{{ unread }}</span>
+        {% endif %}
+      </a>
+      <a href="/analytics" class="ig-nav-item">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </a>
+      <a href="/campaigns" class="ig-nav-item">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        Campaigns
+      </a>
+      <a href="/ai" class="ig-nav-item">
+        <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/><path stroke-linecap="round" stroke-linejoin="round" d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
+        AI Workspace
+      </a>
+    </nav>
+
+    <!-- Create post button -->
+    <button onclick="openCompose()" class="ig-nav-item" style="background:#1a1a1a;border:1px solid var(--border);margin-top:8px;border-radius:8px;font-weight:700;">
+      <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Create
+    </button>
+
+    <!-- User -->
+    <a href="/profile/{{ user.id }}" class="ig-sidebar-user" style="margin-top:auto;">
+      {% if user.avatar_url %}
+        <img src="{{ user.avatar_url }}" class="ig-avatar border-{{ rc }}" style="width:40px;height:40px;">
+      {% else %}
+        <div class="ig-avatar ig-avatar-init av-{{ rc }}" style="width:40px;height:40px;font-size:16px;">{{ user.name[0] }}</div>
+      {% endif %}
+      <div class="min-w-0">
+        <div class="ig-sidebar-uname truncate">{{ user.name }}</div>
+        <div class="ig-sidebar-tagline truncate">{{ user.tagline or user.role }}</div>
+      </div>
+    </a>
+    <a href="/logout" class="ig-nav-item" style="color:#ef4444;margin-top:4px;">
+      <svg class="ig-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Log Out
+    </a>
+  </aside>
+
+  <!-- ════════════════════ FEED COLUMN ════════════════════ -->
+  <main class="ig-feed-col">
+    <div class="ig-feed-inner">
+
+      <!-- Stories / Reels strip -->
+      <div class="ig-stories-wrap">
+        <div class="ig-stories-row" id="reels-strip">
+          <!-- Add Story button -->
+          <div class="ig-add-story" onclick="openCompose('photo')">
+            <div class="ig-add-story-ring">
+              {% if user.avatar_url %}
+                <img src="{{ user.avatar_url }}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;opacity:.5;">
+              {% else %}
+                <div class="reel-init av-{{ rc }}" style="width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;">{{ user.name[0] }}</div>
+              {% endif %}
+              <div class="ig-add-story-plus" style="position:absolute;bottom:2px;right:2px;">+</div>
+            </div>
+            <span class="ig-add-story-label">Your Story</span>
+          </div>
+          <!-- Reels injected by JS -->
+        </div>
+      </div>
+
+      <!-- Compose trigger -->
+      <div class="ig-compose-trigger">
+        {% if user.avatar_url %}
+          <img src="{{ user.avatar_url }}" class="ig-avatar border-{{ rc }}" style="width:38px;height:38px;">
+        {% else %}
+          <div class="ig-avatar ig-avatar-init av-{{ rc }}" style="width:38px;height:38px;font-size:15px;">{{ user.name[0] }}</div>
+        {% endif %}
+        <button class="ig-compose-fake-input" onclick="openCompose()">What's on your mind?</button>
+        <button onclick="openCompose('photo')" style="padding:6px 12px;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--accent);transition:background .15s;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='#1a1a1a'">
+          Photo
+        </button>
+      </div>
+
+      <!-- Feed posts container -->
+      <div id="feed-container">
+        <!-- Skeleton loaders -->
+        <div style="padding:16px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+            <div class="ig-skeleton" style="width:42px;height:42px;border-radius:50%;"></div>
+            <div style="flex:1;">
+              <div class="ig-skeleton" style="height:12px;width:120px;margin-bottom:6px;"></div>
+              <div class="ig-skeleton" style="height:10px;width:80px;"></div>
+            </div>
+          </div>
+          <div class="ig-skeleton" style="height:300px;border-radius:8px;"></div>
+        </div>
+        <div style="padding:16px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+            <div class="ig-skeleton" style="width:42px;height:42px;border-radius:50%;"></div>
+            <div style="flex:1;">
+              <div class="ig-skeleton" style="height:12px;width:140px;margin-bottom:6px;"></div>
+              <div class="ig-skeleton" style="height:10px;width:90px;"></div>
+            </div>
+          </div>
+          <div class="ig-skeleton" style="height:240px;border-radius:8px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ════════════════════ RIGHT SIDEBAR ════════════════════ -->
+  <aside class="ig-right-col">
+    <!-- Profile mini -->
+    <div class="ig-sidebar-profile">
+      <a href="/profile/{{ user.id }}">
+        {% if user.avatar_url %}
+          <img src="{{ user.avatar_url }}" class="ig-avatar border-{{ rc }}" style="width:52px;height:52px;">
+        {% else %}
+          <div class="ig-avatar ig-avatar-init av-{{ rc }}" style="width:52px;height:52px;font-size:20px;">{{ user.name[0] }}</div>
+        {% endif %}
+      </a>
+      <div class="min-w-0">
+        <a href="/profile/{{ user.id }}" class="ig-sidebar-pname">{{ user.name }}</a>
+        <div class="ig-sidebar-ptag truncate">{{ user.tagline or user.role }}</div>
+      </div>
+      <a href="/profile/edit" class="ig-sidebar-switch">Edit</a>
+    </div>
+
+    <div class="ig-right-section-title">Suggested for you</div>
+    <div id="suggestions-list">
+      <div class="ig-sugg-item">
+        <div class="ig-skeleton" style="width:40px;height:40px;border-radius:50%;"></div>
+        <div style="flex:1;">
+          <div class="ig-skeleton" style="height:11px;width:100px;margin-bottom:6px;"></div>
+          <div class="ig-skeleton" style="height:10px;width:70px;"></div>
+        </div>
+      </div>
+      <div class="ig-sugg-item">
+        <div class="ig-skeleton" style="width:40px;height:40px;border-radius:50%;"></div>
+        <div style="flex:1;">
+          <div class="ig-skeleton" style="height:11px;width:110px;margin-bottom:6px;"></div>
+          <div class="ig-skeleton" style="height:10px;width:75px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;font-size:11px;color:var(--text-ter);line-height:1.8;">
+      <p>About · Help · API · Privacy · Terms</p>
+      <p style="margin-top:8px;">© 2026 Ads Runner. All rights reserved.</p>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ════════════════════ MOBILE BOTTOM NAV ════════════════════ -->
+<nav class="ig-bottom-nav">
+  <a href="/" class="ig-bottom-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+  </a>
+  <a href="/feed" class="ig-bottom-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+  </a>
+  <button class="ig-bottom-btn" onclick="openCompose()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+  </button>
+  <a href="/network" class="ig-bottom-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+  </a>
+  <a href="/profile/{{ user.id }}" class="ig-bottom-btn">
+    {% if user.avatar_url %}
+      <img src="{{ user.avatar_url }}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+    {% else %}
+      <div class="av-{{ rc }}" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">{{ user.name[0] }}</div>
+    {% endif %}
+  </a>
+</nav>
+
+<!-- ════════════════════ COMPOSE MODAL ════════════════════ -->
+<div id="compose-modal" class="ig-modal-overlay hidden">
+  <div class="ig-compose-modal">
+    <!-- Header -->
+    <div class="ig-modal-header">
+      <button class="ig-modal-close" onclick="closeCompose()" style="width:32px;height:32px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="ig-modal-title">Create Post</div>
+      <div style="width:32px;"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="ig-compose-tabs">
+      <button class="ig-compose-tab active" onclick="switchTab('photo',this)">📷 Photo/Video</button>
+      <button class="ig-compose-tab" onclick="switchTab('text',this)">✏️ Text Update</button>
+      <button class="ig-compose-tab" onclick="switchTab('reel',this)">🎬 Reel URL</button>
+    </div>
+
+    <!-- Author row -->
+    <div class="ig-compose-author">
+      {% if user.avatar_url %}
+        <img src="{{ user.avatar_url }}" class="ig-avatar border-{{ rc }}" style="width:40px;height:40px;">
+      {% else %}
+        <div class="ig-avatar ig-avatar-init av-{{ rc }}" style="width:40px;height:40px;font-size:16px;">{{ user.name[0] }}</div>
+      {% endif %}
+      <div>
+        <div class="ig-compose-name">{{ user.name }}</div>
+        <div class="ig-compose-privacy">Anyone</div>
+      </div>
+    </div>
+
+    <!-- Caption -->
+    <div class="ig-compose-text">
+      <textarea id="compose-caption" rows="3" placeholder="Write a caption..."></textarea>
+    </div>
+
+    <!-- Media area -->
+    <div class="ig-compose-media" id="compose-image-area">
+
+      <!-- Drop zone (photo/video tab) -->
+      <div id="image-drop-zone" class="ig-drop-zone"
+        onclick="document.getElementById('post-file-input').click()"
+        ondragover="event.preventDefault();this.classList.add('dragging')"
+        ondragleave="this.classList.remove('dragging')"
+        ondrop="handleDrop(event)">
+        <svg class="ig-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <div class="ig-drop-title">Drag & drop or click to upload</div>
+        <div class="ig-drop-sub">JPG, PNG, GIF, WEBP, MP4, MOV — max 10 MB</div>
+        <button class="ig-upload-btn" onclick="event.stopPropagation();document.getElementById('post-file-input').click()">Select from device</button>
+        <input id="compose-url-input" type="url" placeholder="Or paste image URL..."
+          class="ig-url-input" onclick="event.stopPropagation()" oninput="handleUrlInput(this.value)">
+      </div>
+      <input id="post-file-input" type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm" class="hidden" onchange="handlePostFile(this)">
+
+      <!-- Preview -->
+      <div id="compose-image-preview" class="ig-preview-wrap hidden">
+        <img id="preview-img" class="ig-preview-img">
+        <button onclick="clearImage()" class="ig-preview-remove">×</button>
+      </div>
+
+      <!-- Reel URL input (hidden by default) -->
+      <div id="reel-url-area" class="hidden" style="padding-top:8px;">
+        <label style="font-size:13px;color:var(--text-sec);display:block;margin-bottom:6px;">Video URL (YouTube, mp4, etc.)</label>
+        <input id="reel-url-input" type="url" placeholder="https://example.com/video.mp4"
+          class="ig-url-input" style="margin-top:0;">
+        <div style="margin-top:12px;font-size:12px;color:var(--text-ter);">
+          Paste a direct video link. It will appear as a Reel in the feed.
+        </div>
+      </div>
+
+      <!-- Upload status -->
+      <div id="post-upload-status" class="ig-upload-status hidden">
+        <div class="ig-spinner"></div>
+        <span>Uploading...</span>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="ig-modal-footer">
+      <button class="ig-btn-secondary" onclick="closeCompose()">Discard</button>
+      <button class="ig-btn-primary" id="post-btn" onclick="submitPost()">Share Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ REEL MODAL ════════════════════ -->
+<div id="reel-modal" class="ig-reel-modal hidden" onclick="if(event.target===this)closeReelModal()">
+  <button class="ig-reel-close" onclick="closeReelModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div id="reel-modal-body" style="width:100%;max-width:400px;position:relative;"></div>
+</div>
+
+<!-- ════════════════════ SCRIPTS ════════════════════ -->
+<script src="/static/js/feed.js"></script>
+<script>
+  /* ── Compose modal state ──────────────────────── */
+  let uploadedImageUrl = '';
+  let currentTab = 'photo';
+
+  function switchTab(tab, el) {
+    currentTab = tab;
+    document.querySelectorAll('.ig-compose-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+
+    const dropZone   = document.getElementById('image-drop-zone');
+    const preview    = document.getElementById('compose-image-preview');
+    const reelArea   = document.getElementById('reel-url-area');
+
+    if (tab === 'photo') {
+      dropZone.classList.remove('hidden');
+      reelArea.classList.add('hidden');
+    } else if (tab === 'text') {
+      dropZone.classList.add('hidden');
+      if (!uploadedImageUrl) preview.classList.add('hidden');
+      reelArea.classList.add('hidden');
+    } else if (tab === 'reel') {
+      dropZone.classList.add('hidden');
+      if (!uploadedImageUrl) preview.classList.add('hidden');
+      reelArea.classList.remove('hidden');
+    }
+  }
+
+  function openCompose(mode) {
+    document.getElementById('compose-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    if (mode === 'photo') {
+      setTimeout(() => document.getElementById('post-file-input').click(), 100);
+    }
+  }
+
+  function closeCompose() {
+    document.getElementById('compose-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    document.getElementById('compose-caption').value = '';
+    clearImage();
+    const reelInput = document.getElementById('reel-url-input');
+    if (reelInput) reelInput.value = '';
+    // Reset to first tab
+    const tabs = document.querySelectorAll('.ig-compose-tab');
+    tabs.forEach((t,i) => t.classList.toggle('active', i===0));
+    currentTab = 'photo';
+    document.getElementById('image-drop-zone').classList.remove('hidden');
+    document.getElementById('reel-url-area').classList.add('hidden');
+  }
+
+  function clearImage() {
+    uploadedImageUrl = '';
+    const img = document.getElementById('preview-img');
+    if (img) img.src = '';
+    document.getElementById('compose-image-preview').classList.add('hidden');
+    document.getElementById('image-drop-zone').classList.remove('hidden');
+    const urlInput = document.getElementById('compose-url-input');
+    if (urlInput) urlInput.value = '';
+    const fi = document.getElementById('post-file-input');
+    if (fi) fi.value = '';
+  }
+
+  function showImagePreview(src) {
+    const img = document.getElementById('preview-img');
+    img.src = src;
+    document.getElementById('compose-image-preview').classList.remove('hidden');
+    document.getElementById('image-drop-zone').classList.add('hidden');
+  }
+
+  function handleUrlInput(url) {
+    if (url.trim()) {
+      uploadedImageUrl = url.trim();
+      showImagePreview(url.trim());
+    }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('image-drop-zone').classList.remove('dragging');
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  }
+
+  async function handlePostFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    // Instant preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = e => showImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+    await uploadFile(file);
+  }
+
+  async function uploadFile(file) {
+    const status = document.getElementById('post-upload-status');
+    status.classList.remove('hidden');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res  = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      uploadedImageUrl = data.url;
+      if (file.type.startsWith('image/')) showImagePreview(data.url);
+      status.classList.add('hidden');
+    } catch(e) {
+      status.innerHTML = `<span style="color:#ef4444">⚠ Upload failed: ${e.message}</span>`;
+    }
+  }
+
+  async function submitPost() {
+    const caption  = document.getElementById('compose-caption').value.trim();
+    const reelInput = document.getElementById('reel-url-input');
+    const reelUrl  = reelInput ? reelInput.value.trim() : '';
+    const imageUrl = uploadedImageUrl;
+
+    if (!caption && !imageUrl && !reelUrl) {
+      document.getElementById('compose-caption').focus();
+      return;
+    }
+
+    const btn = document.getElementById('post-btn');
+    btn.disabled = true;
+    btn.textContent = 'Posting...';
+
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: caption || (reelUrl ? '🎬 New Reel' : '📸'),
+          image_url: imageUrl,
+          reel_url: reelUrl
+        })
+      });
+      if (res.ok) {
+        closeCompose();
+        await loadFeed();
+        await loadReels();
+      }
+    } catch(e) { alert('Failed to post. Try again.'); }
+
+    btn.disabled = false;
+    btn.textContent = 'Share Post';
+  }
+
+  // Close on backdrop click
+  document.getElementById('compose-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCompose();
+  });
+</script>
+</body>
+</html>

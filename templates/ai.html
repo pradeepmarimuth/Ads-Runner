@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Workspace | Ads Runner</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Theme Customizations -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            space: {
+              950: '#020617', // Space-dark background
+              900: '#0f172a', // Dark panels
+              850: '#1e293b',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            light: {
+              100: '#f8fafc',
+              200: '#f1f5f9',
+              300: '#e2e8f0',
+              800: '#1e293b',
+              900: '#0f172a'
+            },
+            neon: {
+              cyan: '#06b6d4',
+              purple: '#a855f7',
+              pink: '#ec4899',
+              green: '#10b981',
+            }
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.35)',
+            'glow-purple': '0 0 15px rgba(168, 85, 247, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Font: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+    .dark body {
+      background-color: #0d0d1a;
+      background-image: 
+        radial-gradient(at 20% 10%, rgba(245, 158, 11, 0.10) 0px, transparent 55%),
+        radial-gradient(at 80% 5%,  rgba(99, 102, 241, 0.10) 0px, transparent 55%);
+      background-attachment: fixed;
+    }
+    .light body {
+      background-color: #f8fafc;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    /* Chat response styling */
+    .chat-response p {
+      margin: 0;
+      line-height: 1.6;
+    }
+    .chat-response strong {
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .chat-response code {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+    }
+    .chat-response br {
+      display: block;
+      content: "";
+      margin: 4px 0;
+    }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-space-950 text-slate-100 min-h-full flex flex-col md:flex-row antialiased dark">
+
+  <!-- =================================================== -->
+  <!-- SIDE NAVIGATION (Responsive) -->
+  <!-- =================================================== -->
+  <aside class="w-full md:w-64 bg-space-900/60 dark:bg-space-900/60 light:bg-slate-200 border-b md:border-b-0 md:border-r border-slate-850 dark:border-slate-800/80 light:border-slate-300 backdrop-blur-md shrink-0 flex flex-col justify-between p-6">
+    <div class="space-y-8">
+      
+      <!-- Brand Header -->
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-gradient-to-tr from-purple-600 to-cyan-500 rounded-xl shadow-glow-cyan">
+          <i data-lucide="rocket" class="h-5 w-5 text-white animate-pulse"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg bg-gradient-to-r from-white via-slate-100 to-cyan-400 bg-clip-text text-transparent dark:text-transparent light:text-slate-800 tracking-wide leading-none">
+            ADS RUNNER
+          </span>
+          <span class="text-[9px] block text-cyan-400 font-mono tracking-widest leading-none mt-1 uppercase">
+            Control Console
+          </span>
+        </div>
+      </div>
+
+      <!-- Nav List -->
+      <nav class="space-y-1.5">
+        <a href="/" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent transition-all duration-200">
+          <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="/campaigns" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent transition-all duration-200">
+          <i data-lucide="list-collapse" class="h-4 w-4"></i>
+          <span>Campaign Logs</span>
+        </a>
+
+        <a href="/ai" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold border border-purple-500/20 bg-slate-800/85 text-purple-400 transition-all duration-200">
+          <i data-lucide="sparkles" class="h-4 w-4"></i>
+          <span>AI Copywriter</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Bottom Actions: Theme Toggle, Pilot details, Logout -->
+    <div class="space-y-4 pt-6 border-t border-slate-800/60 light:border-slate-300">
+      
+      <!-- Theme Switcher Button -->
+      <button onclick="toggleTheme()" class="w-full flex items-center space-x-3 px-4 py-2 bg-slate-950/60 dark:bg-slate-950/60 light:bg-slate-300 border border-slate-800 dark:border-slate-800 light:border-slate-400 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+        <i data-lucide="sun-moon" class="h-4 w-4 text-cyan-400" id="theme-icon"></i>
+        <span>Toggle Theme</span>
+      </button>
+
+      <!-- Account display -->
+      <div class="flex items-center space-x-3 px-2">
+        <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm text-white font-mono uppercase">
+          {{ username[0] }}
+        </div>
+        <div class="truncate">
+          <span class="block text-xs font-bold text-slate-200 dark:text-slate-200 light:text-slate-800 font-sans leading-none">{{ username }}</span>
+          <span class="text-[9px] font-mono text-cyan-400 uppercase tracking-widest mt-0.5 leading-none">Active Pilot</span>
+        </div>
+      </div>
+
+      <a href="/logout" class="flex items-center space-x-3 px-4 py-2 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-all duration-200">
+        <i data-lucide="log-out" class="h-4 w-4"></i>
+        <span>Logout Node</span>
+      </a>
+      
+      <div class="flex items-center space-x-2.5 px-3 py-2 bg-slate-950/60 dark:bg-slate-950/60 light:bg-slate-300 border border-slate-800 dark:border-slate-800 light:border-slate-450 rounded-xl">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+        </span>
+        <span class="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
+          Telemetry Active
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =================================================== -->
+  <!-- MAIN WORKSPACE -->
+  <!-- =================================================== -->
+  <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full space-y-8">
+    
+    <!-- Top Action Bar -->
+    <header class="pb-5 border-b border-slate-800/60 mb-6">
+      <div class="flex items-center gap-1.5 text-xs font-mono text-purple-400 uppercase tracking-widest">
+        <i data-lucide="sparkles" class="h-3.5 w-3.5 animate-pulse"></i> Quantum AI Slogan & Links workspace
+      </div>
+      <h1 class="text-3xl font-extrabold text-white dark:text-white light:text-slate-800 tracking-tight mt-1">
+        AI Marketing Copywriter & URL Analyzer
+      </h1>
+      <p class="text-slate-400 text-sm">
+        Analyze destination URLs to harvest engagement predictions, and generate hashtag matrices.
+      </p>
+    </header>
+
+    <!-- Top Grid: Left (Slogan + Hashtags Generators) | Right (Link Analyzer) -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Copy & Hashtags Generators Section -->
+      <div class="space-y-6">
+        
+        <!-- Tab: Slogan Generator -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+          <h2 class="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="pen-tool" class="h-4.5 w-4.5 text-purple-400"></i> Slogan Generator
+          </h2>
+          <form onsubmit="generateSlogans(event)" class="flex gap-3">
+            <input
+              id="product"
+              type="text"
+              placeholder="e.g. Hover Boots 3000"
+              class="flex-grow bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-lg py-2 px-3 text-sm text-slate-200 placeholder-slate-650 focus:outline-none transition-all duration-200"
+              required
+            />
+            <button type="submit" id="slogan-submit-btn" class="flex items-center space-x-2 py-2 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg text-sm font-semibold shadow-glow-purple transition-all duration-200">
+              <i data-lucide="sparkles" class="h-4 w-4 text-purple-200"></i>
+              <span>Generate Slogans</span>
+            </button>
+          </form>
+          
+          <div id="slogan-output" class="space-y-2 mt-2">
+            <!-- Output container -->
+          </div>
+        </div>
+
+        <!-- Tab: AI Hashtag Generator -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+          <h2 class="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="hash" class="h-4.5 w-4.5 text-pink-400"></i> AI Hashtag Generator
+          </h2>
+          <form onsubmit="generateHashtags(event)" class="flex gap-3">
+            <input
+              id="hashtag-keyword"
+              type="text"
+              placeholder="e.g. Zero-Gravity Flight"
+              class="flex-grow bg-slate-950 border border-slate-800 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 placeholder-slate-650 focus:outline-none transition-all duration-200"
+              required
+            />
+            <button type="submit" id="hashtag-submit-btn" class="flex items-center space-x-2 py-2 px-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-lg text-sm font-semibold shadow-glow-pink transition-all duration-200">
+              <i data-lucide="sparkles" class="h-4 w-4 text-pink-200"></i>
+              <span>Create Hashtags</span>
+            </button>
+          </form>
+          
+          <div id="hashtag-output" class="flex flex-wrap gap-2 pt-2">
+            <!-- Output hashtags list -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Smart Link Analyzer Section -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col justify-between">
+        <div class="space-y-4">
+          <h2 class="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="link" class="h-4.5 w-4.5 text-cyan-400"></i> Smart Ad Link Analyzer
+          </h2>
+          <p class="text-slate-400 text-xs leading-normal">
+            Paste your active marketing ad URL. Our scraper will simulate engagement rates, predict CTR velocities, compile suggestions, and inject them into active campaign metrics.
+          </p>
+          <form onsubmit="runLinkAnalyzer(event)" class="flex gap-3">
+            <input
+              id="analyzer-url"
+              type="url"
+              placeholder="https://instagram.com/my-hoverboard-promo-link"
+              class="flex-grow bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-lg py-2 px-3 text-sm text-slate-200 placeholder-slate-650 focus:outline-none transition-all duration-200"
+              required
+            />
+            <button type="submit" id="analyzer-submit-btn" class="flex items-center space-x-2 py-2 px-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg text-sm font-semibold shadow-glow-cyan transition-all duration-200">
+              <i data-lucide="cpu" class="h-4 w-4"></i>
+              <span>Analyze URL</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Analyzer results box -->
+        <div id="analyzer-result-panel" class="hidden mt-6 p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest font-mono">Analysis Report Summary</span>
+            <span class="text-[10px] bg-cyan-950/40 text-cyan-300 border border-cyan-500/20 px-2 py-0.5 rounded uppercase font-mono">Scraped</span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="block text-[10px] text-slate-450 uppercase font-mono">Predicted CTR</span>
+              <span class="text-lg font-bold text-white font-mono mt-0.5 block" id="result-ctr">-</span>
+            </div>
+            <div>
+              <span class="block text-[10px] text-slate-450 uppercase font-mono">Engagement Rate</span>
+              <span class="text-lg font-bold text-white font-mono mt-0.5 block" id="result-eng">-</span>
+            </div>
+          </div>
+          
+          <div>
+            <span class="block text-[10px] text-slate-450 uppercase font-mono">Suggested Hashtags</span>
+            <div class="flex flex-wrap gap-1.5 mt-1" id="result-hashtags"></div>
+          </div>
+          
+          <div class="pt-2 border-t border-slate-850/60">
+            <span class="block text-[10px] text-slate-450 uppercase font-mono">Verdict</span>
+            <p class="text-xs text-slate-300 mt-1 leading-normal" id="result-verdict"></p>
+          </div>
+        </div>
+
+        <div id="analyzer-placeholder" class="mt-6 flex flex-col items-center justify-center text-center p-8 bg-slate-950/40 border border-slate-850 border-dashed rounded-xl h-44">
+          <i data-lucide="link" class="h-6 w-6 text-slate-500 mb-2"></i>
+          <span class="text-xs text-slate-400 font-medium">Link Report Idle</span>
+          <span class="text-[10px] text-slate-500 mt-0.5">Submit an Ad link above to compile scraper metrics.</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Table Section: Ad URL Analyzer Logs ledger -->
+    <section class="space-y-4 pt-4">
+      <h2 class="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+        <i data-lucide="history" class="h-4.5 w-4.5 text-cyan-400"></i> Url Scraper Audit Log
+      </h2>
+      <div class="w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-950 border-b border-slate-800 text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <th class="py-4 px-6">Timestamp</th>
+              <th class="py-4 px-6">Analyzed Landing URL</th>
+              <th class="py-4 px-6 text-right">Predicted CTR</th>
+              <th class="py-4 px-6 text-right">Engagement</th>
+              <th class="py-4 px-6">Suggested Tags</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-sm font-medium text-slate-350 dark:text-slate-350 light:text-slate-700" id="logs-table-body">
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-500 font-mono">
+                Initiating link telemetry logs...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+    </section>
+
+    <!-- AI Marketing Assistant Chatbot Section -->
+    <section class="space-y-4 pt-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="message-square" class="h-4.5 w-4.5 text-purple-400"></i> AI Marketing Assistant Chatbot
+        </h2>
+        <button type="button" onclick="clearChatHistory()" class="flex items-center gap-1.5 px-3 py-1 text-xs text-red-400 hover:text-red-300 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 rounded-lg transition-colors font-mono font-semibold">
+          <i data-lucide="trash-2" class="h-3.5 w-3.5"></i> Clear Chat
+        </button>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        
+        <!-- Suggestions row -->
+        <div class="flex flex-wrap gap-2 pb-2 border-b border-slate-800/60">
+          <span class="text-[10px] text-slate-450 uppercase font-mono self-center mr-2">Quick Prompts:</span>
+          <button type="button" onclick="setChatPrompt('Give me a comprehensive marketing strategy for launching Hover Shoes including target audience, platforms, budget allocation, and timeline')" class="text-xs bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-purple-500/35 rounded-lg px-3 py-1.5 text-slate-350 transition-colors">
+            🚀 Detailed Campaign Strategy
+          </button>
+          <button type="button" onclick="setChatPrompt('Provide a complete guide on improving Instagram ad performance with specific tips for visuals, copy, targeting, and timing')" class="text-xs bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-purple-500/35 rounded-lg px-3 py-1.5 text-slate-350 transition-colors">
+            📈 Instagram Optimization Guide
+          </button>
+          <button type="button" onclick="setChatPrompt('Explain everything about improving CTR - from creative optimization to A/B testing strategies')" class="text-xs bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-purple-500/35 rounded-lg px-3 py-1.5 text-slate-350 transition-colors">
+            � Complete CTR Guide
+          </button>
+        </div>
+
+        <!-- Chat messages ledger -->
+        <div id="chat-messages-container" class="space-y-4 overflow-y-auto max-h-[500px] min-h-[300px] p-4 bg-slate-950 border border-slate-850 rounded-xl font-sans">
+          <!-- Initial message -->
+          <div class="flex items-start gap-3">
+            <div class="h-7 w-7 bg-cyan-950/40 border border-cyan-500/20 text-cyan-400 rounded-lg flex items-center justify-center font-bold text-[10px] font-mono shrink-0">AI</div>
+            <div class="bg-cyan-950/20 border border-cyan-500/10 text-slate-350 rounded-lg px-3.5 py-2 text-xs leading-relaxed max-w-[90%]">
+              Hello! I am your <strong>AI Marketing Assistant</strong> powered by local <strong>Ollama</strong> (model: <code class="px-1 bg-slate-800 text-cyan-300 rounded text-[10px]">qwen2.5:0.5b</code>).<br><br>
+              I can provide <strong>comprehensive, detailed answers</strong> about:<br>
+              • Marketing strategies and campaign planning<br>
+              • Ad optimization and performance analysis<br>
+              • Content creation and copywriting<br>
+              • Platform-specific best practices<br>
+              • Your campaign data and metrics<br><br>
+              Ask me anything - I'll provide detailed, well-structured responses!
+            </div>
+          </div>
+        </div>
+
+        <!-- Input submission form -->
+        <form onsubmit="sendChatMessage(event)" class="flex gap-3">
+          <input
+            id="chat-input"
+            type="text"
+            placeholder="Type your marketing question here..."
+            class="flex-grow bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-lg py-2.5 px-4 text-sm text-slate-200 placeholder-slate-650 focus:outline-none transition-all duration-200"
+            required
+          />
+          <button type="submit" id="chat-submit-btn" class="flex items-center space-x-2 py-2.5 px-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg text-sm font-semibold shadow-glow-purple transition-all duration-200 shrink-0">
+            <i data-lucide="send" class="h-4 w-4 text-purple-200"></i>
+            <span>Send Query</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load static ai control script -->
+  <script src="/static/js/ai.js"></script>
+  <script>
+    // Initialize Lucide icons & Restore theme
+    lucide.createIcons();
+    initTheme();
+
+    function initTheme() {
+      const theme = localStorage.getItem('theme') || 'dark';
+      const body = document.body;
+      const themeIcon = document.getElementById('theme-icon');
+
+      body.className = body.className.replace(/dark|light/g, '').trim();
+
+      if (theme === 'dark') {
+        body.classList.add('dark');
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        body.classList.add('light');
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.classList.contains('dark') ? 'dark' : 'light';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', nextTheme);
+      initTheme();
+    }
+  </script>
+</body>
+</html>

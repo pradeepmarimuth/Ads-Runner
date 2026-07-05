@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Master Control Console</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Theme Customizations -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            space: {
+              950: '#020617', // Space-dark background
+              900: '#0f172a', // Dark panels
+              800: '#1e293b',
+              700: '#334155',
+            },
+            neon: {
+              cyan: '#06b6d4',
+              purple: '#a855f7',
+              pink: '#ec4899',
+              green: '#10b981',
+            }
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.35)',
+            'glow-purple': '0 0 15px rgba(168, 85, 247, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Font: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-space-950 text-slate-100 min-h-full flex flex-col md:flex-row antialiased">
+
+  <!-- =================================================== -->
+  <!-- ADMIN SIDE NAVIGATION -->
+  <!-- =================================================== -->
+  <aside class="w-full md:w-64 bg-space-900/60 border-b md:border-b-0 md:border-r border-slate-800/80 backdrop-blur-md shrink-0 flex flex-col justify-between p-6">
+    <div class="space-y-8">
+      
+      <!-- Brand Header -->
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-gradient-to-tr from-purple-600 to-pink-500 rounded-xl shadow-glow-purple">
+          <i data-lucide="shield-alert" class="h-5 w-5 text-white"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg bg-gradient-to-r from-white via-slate-100 to-pink-400 bg-clip-text text-transparent tracking-wide leading-none">
+            ADMIN PANEL
+          </span>
+          <span class="text-[9px] block text-pink-400 font-mono tracking-widest leading-none mt-1 uppercase">
+            Master Console
+          </span>
+        </div>
+      </div>
+
+      <!-- Nav List -->
+      <nav class="space-y-1.5">
+        <button onclick="switchTab('users')" id="btn-users" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold border border-pink-500/20 bg-slate-800/85 text-pink-400 transition-all duration-200">
+          <i data-lucide="users" class="h-4 w-4"></i>
+          <span>Users Node</span>
+        </button>
+
+        <button onclick="switchTab('campaigns')" id="btn-campaigns" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent transition-all duration-200">
+          <i data-lucide="list-collapse" class="h-4 w-4"></i>
+          <span>Global Campaigns</span>
+        </button>
+
+        <button onclick="switchTab('logs')" id="btn-logs" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent transition-all duration-200">
+          <i data-lucide="file-text" class="h-4 w-4"></i>
+          <span>Ad Link Logs</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Logout / Connection status -->
+    <div class="space-y-4">
+      <a href="/logout" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/20 border border-transparent transition-all duration-200">
+        <i data-lucide="log-out" class="h-4 w-4"></i>
+        <span>Logout Node</span>
+      </a>
+      
+      <div class="flex items-center space-x-2.5 px-3 py-2 bg-slate-950/60 border border-slate-800/60 rounded-xl">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-pink-500"></span>
+        </span>
+        <span class="text-[10px] font-mono text-pink-400 uppercase tracking-widest">
+          Auth: Administrator
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =================================================== -->
+  <!-- MAIN WORKSPACE -->
+  <!-- =================================================== -->
+  <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+    
+    <!-- Top Action Bar -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-slate-800/60 mb-6">
+      <div>
+        <div class="flex items-center gap-1.5 text-xs font-mono text-pink-400 uppercase tracking-widest">
+          <i data-lucide="activity" class="h-3.5 w-3.5 animate-pulse"></i> Master Audit System
+        </div>
+        <h1 class="text-3xl font-extrabold text-white tracking-tight mt-1">
+          Master Administration Command Center
+        </h1>
+        <p class="text-slate-400 text-sm">
+          Overview of all system nodes, user campaigns, and AI analytics ledgers.
+        </p>
+      </div>
+
+      <button id="refresh-admin-btn" onclick="fetchAdminTelemetry()" class="self-start sm:self-center flex items-center space-x-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-pink-500/30 hover:bg-slate-800 text-slate-300 hover:text-pink-400 rounded-lg text-sm font-semibold transition-all duration-200">
+        <i data-lucide="refresh-cw" class="h-4 w-4" id="refresh-icon"></i>
+        <span>Reload Databases</span>
+      </button>
+    </header>
+
+    <!-- =================================================== -->
+    <!-- TAB 1: USERS NODE -->
+    <!-- =================================================== -->
+    <section id="tab-users-content" class="tab-content space-y-4">
+      <h3 class="text-md font-mono font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+        <i data-lucide="users" class="h-4 w-4 text-pink-400"></i> Active Node Registry
+      </h3>
+      <div class="w-full bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-950 border-b border-slate-800 text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <th class="py-4 px-6">User ID</th>
+              <th class="py-4 px-6">Name</th>
+              <th class="py-4 px-6">Email Coordinate</th>
+              <th class="py-4 px-6">Portal Access Role</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300" id="users-table-body">
+            <tr>
+              <td colspan="4" class="py-8 text-center text-slate-500 font-mono">Loading active directories...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =================================================== -->
+    <!-- TAB 2: GLOBAL CAMPAIGNS -->
+    <!-- =================================================== -->
+    <section id="tab-campaigns-content" class="tab-content hidden space-y-4">
+      <h3 class="text-md font-mono font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+        <i data-lucide="list-collapse" class="h-4 w-4 text-pink-400"></i> Global Campaign Ledger
+      </h3>
+      <div class="w-full bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-950 border-b border-slate-800 text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <th class="py-4 px-6">Owner ID</th>
+              <th class="py-4 px-6">Campaign Name</th>
+              <th class="py-4 px-6">Platform</th>
+              <th class="py-4 px-6 text-right">Clicks</th>
+              <th class="py-4 px-6 text-right">Conversions</th>
+              <th class="py-4 px-6 text-right">Spend</th>
+              <th class="py-4 px-6 text-right">Revenue</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300" id="campaigns-table-body">
+            <tr>
+              <td colspan="7" class="py-8 text-center text-slate-500 font-mono">Loading campaign databases...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =================================================== -->
+    <!-- TAB 3: AD LINK LOGS -->
+    <!-- =================================================== -->
+    <section id="tab-logs-content" class="tab-content hidden space-y-4">
+      <h3 class="text-md font-mono font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+        <i data-lucide="file-text" class="h-4 w-4 text-pink-400"></i> Global Scraper Logs
+      </h3>
+      <div class="w-full bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-950 border-b border-slate-800 text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <th class="py-4 px-6">User ID</th>
+              <th class="py-4 px-6">Pasted URL</th>
+              <th class="py-4 px-6">CTR Estimate</th>
+              <th class="py-4 px-6">Engagement</th>
+              <th class="py-4 px-6">Hashtags Suggested</th>
+              <th class="py-4 px-6">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300" id="logs-table-body">
+            <tr>
+              <td colspan="6" class="py-8 text-center text-slate-500 font-mono">Loading log indices...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load static admin controller -->
+  <script src="/static/js/admin.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

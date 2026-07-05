@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ profile.name }} | Ads Runner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{space:{950:'#020617',900:'#0f172a',800:'#1e293b'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>body{font-family:'Outfit',sans-serif;background:#0d0d1a;background-image:radial-gradient(at 20% 10%,rgba(245,158,11,.10) 0,transparent 55%),radial-gradient(at 80% 5%,rgba(99,102,241,.10) 0,transparent 55%);}.font-mono{font-family:'Fira Code',monospace;}</style>
+</head>
+<body class="text-slate-100 min-h-screen flex">
+
+  {% set role_colors = {'Influencer':'purple','AdPublisher':'cyan','Customer':'emerald','Admin':'pink'} %}
+  {% set prc = role_colors.get(profile.role, 'slate') %}
+  {% set rc  = role_colors.get(user.role, 'slate') %}
+  {% set is_own = (user.id == profile.id) %}
+
+  <!-- LEFT SIDEBAR (compact) -->
+  <aside class="hidden md:flex w-64 shrink-0 flex-col h-screen sticky top-0 border-r border-slate-800/60 bg-space-900/50 backdrop-blur-xl overflow-y-auto">
+    <div class="p-5 border-b border-slate-800/60"><div class="flex items-center gap-3"><div class="p-2 bg-gradient-to-tr from-amber-500 to-orange-400 rounded-xl"><i data-lucide="rocket" class="h-4 w-4 text-white"></i></div><span class="font-extrabold text-base bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">Ads Runner</span></div></div>
+    <nav class="flex-grow p-4 space-y-1">
+      <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="home" class="h-4 w-4"></i> Home</a>
+      <a href="/feed" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="layout-list" class="h-4 w-4"></i> Feed</a>
+      <a href="/network" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="users" class="h-4 w-4"></i> Network</a>
+      <a href="/messages" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="message-square" class="h-4 w-4"></i> Messages</a>
+      <a href="/analytics" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="bar-chart-3" class="h-4 w-4"></i> Analytics</a>
+    </nav>
+    <div class="p-4 border-t border-slate-800/60"><a href="/logout" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-950/20 transition-all"><i data-lucide="log-out" class="h-4 w-4"></i> Log Out</a></div>
+  </aside>
+
+  <!-- MAIN PROFILE CONTENT -->
+  <main class="flex-grow p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
+
+    <!-- Profile Header Card -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+      <!-- Banner gradient -->
+      <div class="h-32 bg-gradient-to-r from-{{ prc }}-900/50 via-slate-900 to-{{ prc }}-800/30 relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/60"></div>
+      </div>
+
+      <!-- Avatar + info -->
+      <div class="px-6 pb-6">
+        <div class="flex items-end justify-between -mt-12 mb-4">
+          <div class="relative">
+            {% if profile.avatar_url %}
+              <img src="{{ profile.avatar_url }}" class="h-24 w-24 rounded-full object-cover border-4 border-slate-900 shadow-xl">
+            {% else %}
+              <div class="h-24 w-24 rounded-full bg-gradient-to-tr from-{{ prc }}-600 to-{{ prc }}-400 border-4 border-slate-900 flex items-center justify-center text-white font-bold text-3xl shadow-xl">{{ profile.name[0] }}</div>
+            {% endif %}
+            {% if profile.is_verified %}<span class="absolute bottom-1 right-1 h-6 w-6 bg-cyan-500 rounded-full flex items-center justify-center border-2 border-slate-900"><i data-lucide="check" class="h-3 w-3 text-white"></i></span>{% endif %}
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-2 flex-wrap justify-end">
+            {% if is_own %}
+              <a href="/profile/edit" class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-400 rounded-xl text-sm font-semibold transition-all">
+                <i data-lucide="pencil" class="h-4 w-4"></i> Edit Profile
+              </a>
+            {% else %}
+              <a href="/messages/{{ profile.id }}" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-sm font-semibold transition-all">
+                <i data-lucide="message-square" class="h-4 w-4"></i> Message
+              </a>
+              {% if conn_status == 'accepted' %}
+                <button onclick="handleConnect('cancel')" class="flex items-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 rounded-xl text-sm font-semibold transition-all">
+                  <i data-lucide="user-check" class="h-4 w-4"></i> Connected
+                </button>
+              {% elif conn_status == 'pending' and conn_is_mine %}
+                <button onclick="handleConnect('cancel')" class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 rounded-xl text-sm font-semibold transition-all">
+                  <i data-lucide="user-minus" class="h-4 w-4"></i> Pending
+                </button>
+              {% elif conn_status == 'pending' and not conn_is_mine %}
+                <button onclick="handleConnect('accept')" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-sm font-semibold transition-all">
+                  <i data-lucide="user-plus" class="h-4 w-4"></i> Accept
+                </button>
+              {% else %}
+                <button onclick="handleConnect('request')" class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 hover:border-purple-500/30 text-slate-400 hover:text-purple-400 rounded-xl text-sm font-semibold transition-all">
+                  <i data-lucide="user-plus" class="h-4 w-4"></i> Connect
+                </button>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+        <h1 class="text-2xl font-extrabold text-white">{{ profile.name }}</h1>
+        <p class="text-slate-400 text-sm mt-0.5">{{ profile.tagline or profile.role }}</p>
+
+        <div class="flex flex-wrap gap-4 mt-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono border bg-{{ prc }}-950/40 text-{{ prc }}-300 border-{{ prc }}-500/20">
+            <i data-lucide="badge-check" class="h-3 w-3"></i> {{ profile.role }}
+          </span>
+          {% if profile.location %}<span class="text-slate-400 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="h-3 w-3"></i> {{ profile.location }}</span>{% endif %}
+          {% if profile.website %}<a href="{{ profile.website }}" target="_blank" class="text-cyan-400 text-xs flex items-center gap-1 hover:underline"><i data-lucide="link" class="h-3 w-3"></i> {{ profile.website }}</a>{% endif %}
+          <span class="text-slate-500 text-xs flex items-center gap-1"><i data-lucide="calendar" class="h-3 w-3"></i> Joined {{ profile.joined_at.strftime('%b %Y') if profile.joined_at else '' }}</span>
+        </div>
+
+        {% if profile.bio %}
+        <p class="text-slate-300 text-sm mt-4 leading-relaxed">{{ profile.bio }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Recent Posts from this user -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm shadow-xl">
+      <h3 class="text-sm font-mono font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+        <i data-lucide="layout-list" class="h-4 w-4 text-cyan-400"></i> Recent Activity
+      </h3>
+      <div id="profile-posts" class="space-y-4">
+        <div class="animate-pulse h-16 bg-slate-800/50 rounded-xl"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const PROFILE_ID = {{ profile.id }};
+    const MY_ID = {{ user.id }};
+  </script>
+  <script src="/static/js/profile.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

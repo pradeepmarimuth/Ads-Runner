@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics | Ads Runner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{space:{950:'#020617',900:'#0f172a',800:'#1e293b'}}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>body{font-family:'Outfit',sans-serif;background:#0d0d1a;background-image:radial-gradient(at 20% 10%,rgba(245,158,11,.10) 0,transparent 55%),radial-gradient(at 80% 5%,rgba(99,102,241,.10) 0,transparent 55%);}.font-mono{font-family:'Fira Code',monospace;}</style>
+</head>
+<body class="text-slate-100 min-h-screen flex">
+
+  {% set role_colors = {'Influencer':'purple','AdPublisher':'cyan','Customer':'emerald','Admin':'pink'} %}
+  {% set rc = role_colors.get(user.role,'slate') %}
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="hidden md:flex w-72 shrink-0 flex-col h-screen sticky top-0 border-r border-slate-800/60 bg-space-900/50 backdrop-blur-xl overflow-y-auto">
+    <div class="p-6 border-b border-slate-800/60"><div class="flex items-center gap-3"><div class="p-2.5 bg-gradient-to-tr from-amber-500 to-orange-400 rounded-xl"><i data-lucide="rocket" class="h-5 w-5 text-white animate-pulse"></i></div><div><span class="font-extrabold text-lg bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">Ads Runner</span><span class="block text-[9px] font-mono text-amber-400 uppercase tracking-widest">Professional Network</span></div></div></div>
+    <a href="/profile/{{ user.id }}" class="block p-5 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"><div class="flex items-center gap-3">{% if user.avatar_url %}<img src="{{ user.avatar_url }}" class="h-11 w-11 rounded-full object-cover border-2 border-{{ rc }}-500/40">{% else %}<div class="h-11 w-11 rounded-full bg-gradient-to-tr from-{{ rc }}-600 to-{{ rc }}-400 flex items-center justify-center text-white font-bold">{{ user.name[0] }}</div>{% endif %}<div><p class="font-bold text-white text-sm">{{ user.name }}</p><p class="text-[10px] text-slate-400">{{ user.tagline or user.role }}</p></div></div></a>
+    <nav class="flex-grow p-4 space-y-1">
+      <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="home" class="h-4 w-4"></i> Home</a>
+      <a href="/feed" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="layout-list" class="h-4 w-4"></i> Feed</a>
+      <a href="/network" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="users" class="h-4 w-4"></i> Network</a>
+      <a href="/messages" class="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><span class="flex items-center gap-3"><i data-lucide="message-square" class="h-4 w-4"></i> Messages</span>{% if unread > 0 %}<span class="h-5 min-w-[20px] px-1.5 bg-cyan-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ unread }}</span>{% endif %}</a>
+      <a href="/analytics" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-800 text-cyan-400 border border-cyan-500/20"><i data-lucide="bar-chart-3" class="h-4 w-4"></i> Analytics</a>
+      <a href="/campaigns" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="list-collapse" class="h-4 w-4"></i> Campaigns</a>
+      <a href="/ai" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="sparkles" class="h-4 w-4"></i> AI Workspace</a>
+    </nav>
+    <div class="p-4 border-t border-slate-800/60"><a href="/logout" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-950/20 transition-all"><i data-lucide="log-out" class="h-4 w-4"></i> Log Out</a></div>
+  </aside>
+
+  <main class="flex-grow p-6 md:p-8 max-w-6xl mx-auto w-full space-y-6">
+
+    <div class="mb-4">
+      <p class="text-xs font-mono text-cyan-400 uppercase tracking-widest mb-1 flex items-center gap-1.5"><i data-lucide="bar-chart-3" class="h-3.5 w-3.5"></i> Campaign Analytics</p>
+      <h1 class="text-3xl font-extrabold text-white">Performance Dashboard</h1>
+      <p class="text-slate-400 mt-1">Metrics, ROI charts, and AI-powered insights for your campaigns.</p>
+    </div>
+
+    <!-- AI Audit Banner -->
+    <div class="p-5 bg-gradient-to-r from-purple-950/50 to-slate-900/60 border border-purple-500/20 rounded-2xl flex items-center justify-between gap-4">
+      <div>
+        <p class="text-xs font-mono text-purple-400 uppercase tracking-wider mb-0.5">Quantum Performance Advisor</p>
+        <p class="text-sm text-slate-300">Get AI-generated budget reallocation and ROI recommendations.</p>
+        <p id="audit-result" class="text-xs text-slate-400 mt-2 font-mono hidden"></p>
+      </div>
+      <button onclick="runAudit()" class="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg">
+        <i data-lucide="sparkles" class="h-4 w-4"></i> Run AI Audit
+      </button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Total Impressions</p>
+        <p id="kpi-impressions" class="text-2xl font-extrabold text-white">—</p>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Total Clicks</p>
+        <p id="kpi-clicks" class="text-2xl font-extrabold text-white">—</p>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Total Spend</p>
+        <p id="kpi-spend" class="text-2xl font-extrabold text-white">—</p>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Gross ROI</p>
+        <p id="kpi-roi" class="text-2xl font-extrabold text-emerald-400">—</p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <h3 class="text-sm font-mono font-bold text-white uppercase tracking-wider mb-4">Clicks & Impressions</h3>
+        <canvas id="chart-timeseries" height="200"></canvas>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <h3 class="text-sm font-mono font-bold text-white uppercase tracking-wider mb-4">Platform Spend vs Revenue</h3>
+        <canvas id="chart-platform" height="200"></canvas>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    async function loadAnalytics() {
+      try {
+        const [dashRes, campRes] = await Promise.all([fetch('/api/dashboard'), fetch('/api/campaigns')]);
+        const dash = await dashRes.json();
+        const camps = await campRes.json();
+
+        document.getElementById('kpi-impressions').textContent = Number(dash.impressions).toLocaleString();
+        document.getElementById('kpi-clicks').textContent = Number(dash.clicks).toLocaleString();
+        document.getElementById('kpi-spend').textContent = '$' + Number(dash.spend).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});
+        const roi = dash.spend > 0 ? Math.round((dash.revenue - dash.spend) / dash.spend * 100) : 0;
+        document.getElementById('kpi-roi').textContent = roi + '%';
+
+        // Time-series chart
+        const sorted = [...camps].sort((a,b)=> a.date.localeCompare(b.date)).slice(-10);
+        new Chart(document.getElementById('chart-timeseries'), {
+          type: 'line',
+          data: {
+            labels: sorted.map(c => c.date.slice(5)),
+            datasets: [
+              {label:'Clicks', data: sorted.map(c=>c.clicks), borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,.1)', tension:.4, fill:true},
+              {label:'Impressions', data: sorted.map(c=>c.clicks*30), borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,.06)', tension:.4, fill:true}
+            ]
+          },
+          options: {responsive:true, plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}, scales:{x:{ticks:{color:'#475569'},grid:{color:'rgba(71,85,105,.15)'}},y:{ticks:{color:'#475569'},grid:{color:'rgba(71,85,105,.15)'}}}}
+        });
+
+        // Platform bar chart
+        const platforms = ['Instagram','Google Ads','YouTube'];
+        const spend  = platforms.map(pl => camps.filter(c=>c.platform===pl).reduce((s,c)=>s+c.spend,0));
+        const revenue= platforms.map(pl => camps.filter(c=>c.platform===pl).reduce((s,c)=>s+c.revenue,0));
+        new Chart(document.getElementById('chart-platform'), {
+          type: 'bar',
+          data: {
+            labels: platforms,
+            datasets: [
+              {label:'Spend',   data:spend,   backgroundColor:'rgba(168,85,247,.55)', borderColor:'#a855f7', borderWidth:1, borderRadius:6},
+              {label:'Revenue', data:revenue, backgroundColor:'rgba(6,182,212,.55)',  borderColor:'#06b6d4', borderWidth:1, borderRadius:6}
+            ]
+          },
+          options: {responsive:true, plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}}, scales:{x:{ticks:{color:'#475569'},grid:{color:'rgba(71,85,105,.15)'}},y:{ticks:{color:'#475569'},grid:{color:'rgba(71,85,105,.15)'}}}}
+        });
+      } catch(e) { console.error(e); }
+    }
+
+    async function runAudit() {
+      const el = document.getElementById('audit-result');
+      el.textContent = '⏳ Analyzing telemetry...';
+      el.classList.remove('hidden');
+      try {
+        const res  = await fetch('/api/analyze-performance', {method:'POST'});
+        const data = await res.json();
+        el.textContent = '🤖 ' + data.analysis;
+      } catch(e) { el.textContent = 'Analysis failed.'; }
+    }
+
+    loadAnalytics();
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

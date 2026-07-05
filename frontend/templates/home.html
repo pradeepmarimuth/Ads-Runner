@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | Ads Runner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{space:{950:'#0d0b14',900:'#16121f',800:'#221c2e'}},boxShadow:{'glow-warm':'0 0 22px rgba(251,146,60,0.22)'}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    *{font-family:'Plus Jakarta Sans',sans-serif;}
+    body{background:#0d0b14;background-image:radial-gradient(ellipse at 15% 15%,rgba(251,146,60,.12) 0,transparent 55%),radial-gradient(ellipse at 85% 10%,rgba(139,92,246,.09) 0,transparent 50%),radial-gradient(ellipse at 50% 90%,rgba(245,158,11,.07) 0,transparent 55%);background-attachment:fixed;}
+    .tile-card{transition:all .25s ease;background:rgba(22,18,31,.75);border:1px solid rgba(71,63,90,.35);backdrop-filter:blur(14px);border-radius:18px;}
+    .tile-card:hover{transform:translateY(-4px);border-color:rgba(251,146,60,.40);box-shadow:0 0 28px rgba(245,158,11,.15);}
+    .sidebar-brand{background:linear-gradient(135deg,#fbbf24,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex">
+
+  {% set role_colors = {'Influencer':'purple','AdPublisher':'cyan','Customer':'emerald','Admin':'pink'} %}
+  {% set rc = role_colors.get(user.role, 'slate') %}
+
+  <!-- ========== LEFT SIDEBAR ========== -->
+  <aside class="hidden md:flex w-72 shrink-0 flex-col h-screen sticky top-0 border-r border-slate-800/60 bg-space-900/50 backdrop-blur-xl p-0 overflow-y-auto">
+
+    <!-- Brand -->
+    <div class="p-6 border-b border-slate-800/60">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-gradient-to-tr from-purple-600 to-cyan-500 rounded-xl shadow-glow-purple">
+          <i data-lucide="rocket" class="h-5 w-5 text-white animate-pulse"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">Ads Runner</span>
+          <span class="block text-[9px] font-mono text-cyan-400 uppercase tracking-widest">Professional Network</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile mini-card -->
+    <a href="/profile/{{ user.id }}" class="block p-5 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors">
+      <div class="flex items-center gap-3">
+        {% if user.avatar_url %}
+          <img src="{{ user.avatar_url }}" class="h-12 w-12 rounded-full object-cover border-2 border-{{ rc }}-500/40" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="h-12 w-12 rounded-full bg-gradient-to-tr from-{{ rc }}-600 to-{{ rc }}-400 hidden items-center justify-center text-white font-bold text-lg">{{ user.name[0] }}</div>
+        {% else %}
+          <div class="h-12 w-12 rounded-full bg-gradient-to-tr from-{{ rc }}-600 to-{{ rc }}-400 flex items-center justify-center text-white font-bold text-lg">{{ user.name[0] }}</div>
+        {% endif %}
+        <div class="min-w-0">
+          <p class="font-bold text-white text-sm truncate">{{ user.name }}</p>
+          <p class="text-[10px] text-slate-400 truncate">{{ user.tagline or user.role }}</p>
+          <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-mono border bg-{{ rc }}-950/40 text-{{ rc }}-300 border-{{ rc }}-500/20">{{ user.role }}</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="flex-grow p-4 space-y-1">
+      <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if request.path == '/' %}bg-slate-800 text-cyan-400 border border-cyan-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <i data-lucide="home" class="h-4 w-4"></i> Home
+      </a>
+      <a href="/feed" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if '/feed' in request.path %}bg-slate-800 text-cyan-400 border border-cyan-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <i data-lucide="layout-list" class="h-4 w-4"></i> Feed
+      </a>
+      <a href="/network" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if '/network' in request.path %}bg-slate-800 text-cyan-400 border border-cyan-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <i data-lucide="users" class="h-4 w-4"></i> Network
+      </a>
+      <a href="/messages" class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if '/messages' in request.path %}bg-slate-800 text-cyan-400 border border-cyan-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <span class="flex items-center gap-3"><i data-lucide="message-square" class="h-4 w-4"></i> Messages</span>
+        {% if unread > 0 %}<span class="h-5 min-w-[20px] px-1.5 bg-cyan-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ unread }}</span>{% endif %}
+      </a>
+      <a href="/analytics" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if '/analytics' in request.path %}bg-slate-800 text-cyan-400 border border-cyan-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <i data-lucide="bar-chart-3" class="h-4 w-4"></i> Analytics
+      </a>
+      <a href="/campaigns" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if '/campaigns' in request.path %}bg-slate-800 text-cyan-400 border border-cyan-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <i data-lucide="list-collapse" class="h-4 w-4"></i> Campaigns
+      </a>
+      <a href="/ai" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold {% if '/ai' in request.path %}bg-slate-800 text-purple-400 border border-purple-500/20{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %} transition-all">
+        <i data-lucide="sparkles" class="h-4 w-4"></i> AI Workspace
+      </a>
+    </nav>
+
+    <!-- Bottom logout -->
+    <div class="p-4 border-t border-slate-800/60">
+      <a href="/logout" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-950/20 transition-all">
+        <i data-lucide="log-out" class="h-4 w-4"></i> Log Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <div class="flex-grow flex flex-col">
+
+    <!-- Top mobile bar -->
+    <header class="md:hidden flex items-center justify-between px-4 py-3 bg-space-900/80 border-b border-slate-800/60 backdrop-blur-xl sticky top-0 z-10">
+      <span class="font-extrabold text-lg bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">Ads Runner</span>
+      <a href="/messages" class="relative p-2 text-slate-400">
+        <i data-lucide="message-square" class="h-5 w-5"></i>
+        {% if unread > 0 %}<span class="absolute top-1 right-1 h-4 w-4 bg-cyan-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{{ unread }}</span>{% endif %}
+      </a>
+    </header>
+
+    <main class="flex-grow p-6 md:p-8 max-w-5xl mx-auto w-full">
+
+      <!-- Welcome greeting -->
+      <div class="mb-8">
+        <p class="text-xs font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5 mb-1">
+          <i data-lucide="zap" class="h-3.5 w-3.5 animate-pulse"></i> Ads Runner — Professional Hub
+        </p>
+        <h1 class="text-3xl font-extrabold text-white">Welcome back, {{ user.name.split()[0] }} 👋</h1>
+        <p class="text-slate-400 mt-1">Your gateway to smarter ad campaigns and real connections.</p>
+      </div>
+
+      <!-- Feature Tiles Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <!-- Feed -->
+        <a href="/feed" class="tile-card rounded-2xl p-6 group block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="p-3 bg-cyan-950/50 border border-cyan-500/20 rounded-xl group-hover:border-cyan-500/50 transition-colors">
+              <i data-lucide="layout-list" class="h-6 w-6 text-cyan-400"></i>
+            </div>
+            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-600 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all mt-1"></i>
+          </div>
+          <h3 class="font-bold text-white text-lg">Activity Feed</h3>
+          <p class="text-slate-400 text-sm mt-1">See posts from influencers, publishers, and customers in real time.</p>
+        </a>
+
+        <!-- Network -->
+        <a href="/network" class="tile-card rounded-2xl p-6 group block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="p-3 bg-purple-950/50 border border-purple-500/20 rounded-xl group-hover:border-purple-500/50 transition-colors">
+              <i data-lucide="users" class="h-6 w-6 text-purple-400"></i>
+            </div>
+            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-600 group-hover:text-purple-400 group-hover:translate-x-1 transition-all mt-1"></i>
+          </div>
+          <h3 class="font-bold text-white text-lg">Network</h3>
+          <p class="text-slate-400 text-sm mt-1">Discover influencers &amp; ad publishers. Connect and collaborate.</p>
+        </a>
+
+        <!-- Messages -->
+        <a href="/messages" class="tile-card rounded-2xl p-6 group block relative">
+          {% if unread > 0 %}<span class="absolute top-4 right-4 bg-cyan-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ unread }} new</span>{% endif %}
+          <div class="flex items-start justify-between mb-4">
+            <div class="p-3 bg-pink-950/50 border border-pink-500/20 rounded-xl group-hover:border-pink-500/50 transition-colors">
+              <i data-lucide="message-square" class="h-6 w-6 text-pink-400"></i>
+            </div>
+            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-600 group-hover:text-pink-400 group-hover:translate-x-1 transition-all mt-1"></i>
+          </div>
+          <h3 class="font-bold text-white text-lg">Messages</h3>
+          <p class="text-slate-400 text-sm mt-1">Private conversations with influencers and ad publishers.</p>
+        </a>
+
+        <!-- Analytics -->
+        <a href="/analytics" class="tile-card rounded-2xl p-6 group block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="p-3 bg-emerald-950/50 border border-emerald-500/20 rounded-xl group-hover:border-emerald-500/50 transition-colors">
+              <i data-lucide="bar-chart-3" class="h-6 w-6 text-emerald-400"></i>
+            </div>
+            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all mt-1"></i>
+          </div>
+          <h3 class="font-bold text-white text-lg">Analytics</h3>
+          <p class="text-slate-400 text-sm mt-1">Campaign metrics, ROI charts, and performance insights.</p>
+        </a>
+
+        <!-- Campaigns -->
+        <a href="/campaigns" class="tile-card rounded-2xl p-6 group block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="p-3 bg-amber-950/50 border border-amber-500/20 rounded-xl group-hover:border-amber-500/50 transition-colors">
+              <i data-lucide="list-collapse" class="h-6 w-6 text-amber-400"></i>
+            </div>
+            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-1 transition-all mt-1"></i>
+          </div>
+          <h3 class="font-bold text-white text-lg">Campaign Logs</h3>
+          <p class="text-slate-400 text-sm mt-1">Track and manage all your marketing campaign records.</p>
+        </a>
+
+        <!-- AI Workspace -->
+        <a href="/ai" class="tile-card rounded-2xl p-6 group block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="p-3 bg-violet-950/50 border border-violet-500/20 rounded-xl group-hover:border-violet-500/50 transition-colors">
+              <i data-lucide="sparkles" class="h-6 w-6 text-violet-400"></i>
+            </div>
+            <i data-lucide="arrow-right" class="h-4 w-4 text-slate-600 group-hover:text-violet-400 group-hover:translate-x-1 transition-all mt-1"></i>
+          </div>
+          <h3 class="font-bold text-white text-lg">AI Workspace</h3>
+          <p class="text-slate-400 text-sm mt-1">Generate slogans, hashtags, and analyze ad links with AI.</p>
+        </a>
+
+      </div>
+
+      <!-- My Profile quick-edit card -->
+      <div class="mt-8 p-6 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          {% if user.avatar_url %}
+            <img src="{{ user.avatar_url }}" class="h-14 w-14 rounded-full object-cover border-2 border-{{ rc }}-500/40">
+          {% else %}
+            <div class="h-14 w-14 rounded-full bg-gradient-to-tr from-{{ rc }}-600 to-{{ rc }}-400 flex items-center justify-center text-white font-bold text-xl">{{ user.name[0] }}</div>
+          {% endif %}
+          <div>
+            <p class="font-bold text-white">{{ user.name }}</p>
+            <p class="text-slate-400 text-xs">{{ user.tagline or 'No tagline yet' }}</p>
+            <p class="text-slate-500 text-xs mt-0.5">{{ user.location or 'Location not set' }}</p>
+          </div>
+        </div>
+        <a href="/profile/edit" class="shrink-0 flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-400 rounded-xl text-sm font-semibold transition-all">
+          <i data-lucide="pencil" class="h-4 w-4"></i> Edit Profile
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

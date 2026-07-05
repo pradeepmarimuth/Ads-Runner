@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network | Ads Runner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{space:{950:'#020617',900:'#0f172a',800:'#1e293b'}},boxShadow:{'glow-purple':'0 0 20px rgba(168,85,247,0.25)','glow-cyan':'0 0 20px rgba(6,182,212,0.25)'}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>body{font-family:'Outfit',sans-serif;background:#0d0d1a;background-image:radial-gradient(at 20% 10%,rgba(245,158,11,.10) 0,transparent 55%),radial-gradient(at 80% 5%,rgba(99,102,241,.10) 0,transparent 55%),radial-gradient(at 50% 90%,rgba(251,146,60,.07) 0,transparent 55%);}.font-mono{font-family:'Fira Code',monospace;}.person-card{background:rgba(15,23,42,.8);border:1px solid rgba(71,85,105,.35);backdrop-filter:blur(12px);transition:all .2s;}.person-card:hover{border-color:rgba(245,158,11,.3);transform:translateY(-2px);}</style>
+</head>
+<body class="text-slate-100 min-h-screen flex">
+
+  {% set role_colors = {'Influencer':'purple','AdPublisher':'cyan','Customer':'emerald','Admin':'pink'} %}
+  {% set rc = role_colors.get(user.role, 'slate') %}
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="hidden md:flex w-72 shrink-0 flex-col h-screen sticky top-0 border-r border-slate-800/60 bg-space-900/50 backdrop-blur-xl overflow-y-auto">
+    <div class="p-6 border-b border-slate-800/60"><div class="flex items-center gap-3"><div class="p-2.5 bg-gradient-to-tr from-amber-500 to-orange-400 rounded-xl"><i data-lucide="rocket" class="h-5 w-5 text-white animate-pulse"></i></div><div><span class="font-extrabold text-lg bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">Ads Runner</span><span class="block text-[9px] font-mono text-amber-400 uppercase tracking-widest">Professional Network</span></div></div></div>
+    <a href="/profile/{{ user.id }}" class="block p-5 border-b border-slate-800/60 hover:bg-slate-800/30 transition-colors"><div class="flex items-center gap-3">{% if user.avatar_url %}<img src="{{ user.avatar_url }}" class="h-11 w-11 rounded-full object-cover border-2 border-{{ rc }}-500/40">{% else %}<div class="h-11 w-11 rounded-full bg-gradient-to-tr from-{{ rc }}-600 to-{{ rc }}-400 flex items-center justify-center text-white font-bold">{{ user.name[0] }}</div>{% endif %}<div><p class="font-bold text-white text-sm">{{ user.name }}</p><p class="text-[10px] text-slate-400">{{ user.tagline or user.role }}</p></div></div></a>
+    <nav class="flex-grow p-4 space-y-1">
+      <a href="/" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="home" class="h-4 w-4"></i> Home</a>
+      <a href="/feed" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="layout-list" class="h-4 w-4"></i> Feed</a>
+      <a href="/network" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-800 text-cyan-400 border border-cyan-500/20"><i data-lucide="users" class="h-4 w-4"></i> Network</a>
+      <a href="/messages" class="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><span class="flex items-center gap-3"><i data-lucide="message-square" class="h-4 w-4"></i> Messages</span>{% if unread > 0 %}<span class="h-5 min-w-[20px] px-1.5 bg-cyan-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ unread }}</span>{% endif %}</a>
+      <a href="/analytics" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="bar-chart-3" class="h-4 w-4"></i> Analytics</a>
+      <a href="/campaigns" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="list-collapse" class="h-4 w-4"></i> Campaigns</a>
+      <a href="/ai" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all"><i data-lucide="sparkles" class="h-4 w-4"></i> AI Workspace</a>
+    </nav>
+    <div class="p-4 border-t border-slate-800/60"><a href="/logout" class="flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-950/20 transition-all"><i data-lucide="log-out" class="h-4 w-4"></i> Log Out</a></div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-grow p-6 md:p-8 max-w-6xl mx-auto w-full">
+
+    <div class="mb-6">
+      <p class="text-xs font-mono text-amber-400 uppercase tracking-widest mb-1 flex items-center gap-1.5"><i data-lucide="users" class="h-3.5 w-3.5"></i> Ads Runner — Professional Network</p>
+      <h1 class="text-3xl font-extrabold text-white">Discover &amp; Connect</h1>
+      <p class="text-slate-400 mt-1">Find influencers and ad publishers to collaborate with on your campaigns.</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex gap-2 mb-8 flex-wrap">
+      <button onclick="loadNetwork('all')" id="tab-all" class="tab-btn px-5 py-2 rounded-xl text-sm font-semibold border border-cyan-500/30 bg-slate-800 text-cyan-400 transition-all">All</button>
+      <button onclick="loadNetwork('Influencer')" id="tab-Influencer" class="tab-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 text-slate-400 hover:border-purple-500/30 hover:text-purple-400 transition-all">
+        <span class="flex items-center gap-2"><i data-lucide="star" class="h-4 w-4"></i> Influencers</span>
+      </button>
+      <button onclick="loadNetwork('AdPublisher')" id="tab-AdPublisher" class="tab-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 text-slate-400 hover:border-cyan-500/30 hover:text-cyan-400 transition-all">
+        <span class="flex items-center gap-2"><i data-lucide="megaphone" class="h-4 w-4"></i> Ad Publishers</span>
+      </button>
+      <button onclick="loadNetwork('Customer')" id="tab-Customer" class="tab-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 transition-all">
+        <span class="flex items-center gap-2"><i data-lucide="user" class="h-4 w-4"></i> Customers</span>
+      </button>
+    </div>
+
+    <!-- Grid of People Cards -->
+    <div id="network-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="animate-pulse h-48 bg-slate-800/50 rounded-2xl"></div>
+      <div class="animate-pulse h-48 bg-slate-800/50 rounded-2xl"></div>
+      <div class="animate-pulse h-48 bg-slate-800/50 rounded-2xl"></div>
+    </div>
+
+  </main>
+
+  <script src="/static/js/network.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaign Logs | Ads Runner</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Theme Customizations -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            space: {
+              950: '#020617', // Space-dark background
+              900: '#0f172a', // Dark panels
+              850: '#1e293b',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            light: {
+              100: '#f8fafc',
+              200: '#f1f5f9',
+              300: '#e2e8f0',
+              800: '#1e293b',
+              900: '#0f172a'
+            },
+            neon: {
+              cyan: '#06b6d4',
+              purple: '#a855f7',
+              pink: '#ec4899',
+              green: '#10b981',
+            }
+          },
+          boxShadow: {
+            'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.35)',
+            'glow-purple': '0 0 15px rgba(168, 85, 247, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Font: Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+    .dark body {
+      background-color: #0d0d1a;
+      background-image: 
+        radial-gradient(at 20% 10%, rgba(245, 158, 11, 0.10) 0px, transparent 55%),
+        radial-gradient(at 80% 5%,  rgba(99, 102, 241, 0.10) 0px, transparent 55%);
+      background-attachment: fixed;
+    }
+    .light body {
+      background-color: #f8fafc;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-space-950 text-slate-100 min-h-full flex flex-col md:flex-row antialiased dark">
+
+  <!-- =================================================== -->
+  <!-- SIDE NAVIGATION (Responsive) -->
+  <!-- =================================================== -->
+  <aside class="w-full md:w-64 bg-space-900/60 dark:bg-space-900/60 light:bg-slate-200 border-b md:border-b-0 md:border-r border-slate-850 dark:border-slate-800/80 light:border-slate-300 backdrop-blur-md shrink-0 flex flex-col justify-between p-6">
+    <div class="space-y-8">
+      
+      <!-- Brand Header -->
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-gradient-to-tr from-purple-600 to-cyan-500 rounded-xl shadow-glow-cyan">
+          <i data-lucide="rocket" class="h-5 w-5 text-white animate-pulse"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg bg-gradient-to-r from-white via-slate-100 to-cyan-400 bg-clip-text text-transparent dark:text-transparent light:text-slate-800 tracking-wide leading-none">
+            ADS RUNNER
+          </span>
+          <span class="text-[9px] block text-cyan-400 font-mono tracking-widest leading-none mt-1 uppercase">
+            Control Console
+          </span>
+        </div>
+      </div>
+
+      <!-- Nav List -->
+      <nav class="space-y-1.5">
+        <a href="/" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent transition-all duration-200">
+          <i data-lucide="bar-chart-3" class="h-4 w-4"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="/campaigns" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold border border-cyan-500/20 bg-slate-800/85 text-cyan-400 transition-all duration-200">
+          <i data-lucide="list-collapse" class="h-4 w-4"></i>
+          <span>Campaign Logs</span>
+        </a>
+
+        <a href="/ai" class="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent transition-all duration-200">
+          <i data-lucide="sparkles" class="h-4 w-4"></i>
+          <span>AI Copywriter</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Bottom Actions: Theme Toggle, Pilot details, Logout -->
+    <div class="space-y-4 pt-6 border-t border-slate-800/60 light:border-slate-300">
+      
+      <!-- Theme Switcher Button -->
+      <button onclick="toggleTheme()" class="w-full flex items-center space-x-3 px-4 py-2 bg-slate-950/60 dark:bg-slate-950/60 light:bg-slate-300 border border-slate-800 dark:border-slate-800 light:border-slate-400 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+        <i data-lucide="sun-moon" class="h-4 w-4 text-cyan-400" id="theme-icon"></i>
+        <span>Toggle Theme</span>
+      </button>
+
+      <!-- Account display -->
+      <div class="flex items-center space-x-3 px-2">
+        <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm text-white font-mono uppercase">
+          {{ username[0] }}
+        </div>
+        <div class="truncate">
+          <span class="block text-xs font-bold text-slate-200 dark:text-slate-200 light:text-slate-800 font-sans leading-none">{{ username }}</span>
+          <span class="text-[9px] font-mono text-cyan-400 uppercase tracking-widest mt-0.5 leading-none">Active Pilot</span>
+        </div>
+      </div>
+
+      <a href="/logout" class="flex items-center space-x-3 px-4 py-2 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-all duration-200">
+        <i data-lucide="log-out" class="h-4 w-4"></i>
+        <span>Logout Node</span>
+      </a>
+      
+      <div class="flex items-center space-x-2.5 px-3 py-2 bg-slate-950/60 dark:bg-slate-950/60 light:bg-slate-300 border border-slate-800 dark:border-slate-800 light:border-slate-450 rounded-xl">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+        </span>
+        <span class="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
+          Telemetry Active
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =================================================== -->
+  <!-- MAIN WORKSPACE -->
+  <!-- =================================================== -->
+  <main class="flex-grow p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+    
+    <!-- Top Action Bar -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-slate-800/60 light:border-slate-300 mb-6">
+      <div>
+        <div class="flex items-center gap-1.5 text-xs font-mono text-pink-400 uppercase tracking-widest">
+          <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i> Marketing Ledgers
+        </div>
+        <h1 class="text-3xl font-extrabold text-white dark:text-white light:text-slate-800 tracking-tight mt-1">
+          Campaign Logs
+        </h1>
+        <p class="text-slate-400 text-sm">
+          Full audit directory of historical digital outreach campaigns.
+        </p>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="toggleCampaignModal(true)" class="self-start sm:self-center flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-lg text-sm font-semibold shadow-glow-pink transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
+          <i data-lucide="plus" class="h-4 w-4"></i>
+          <span>Launch Campaign</span>
+        </button>
+
+        <button id="refresh-logs" class="self-start sm:self-center flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-slate-900 light:bg-slate-200 border border-slate-800 dark:border-slate-800 light:border-slate-350 hover:border-pink-500/30 hover:bg-slate-850 text-slate-300 dark:text-slate-300 light:text-slate-700 hover:text-pink-400 rounded-lg text-sm font-semibold transition-all duration-200">
+          <i data-lucide="refresh-cw" class="h-4 w-4" id="refresh-icon"></i>
+          <span>Refresh Logs</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Filter Bar -->
+    <section class="flex flex-wrap items-center justify-between gap-4 bg-slate-900/60 dark:bg-slate-900/60 light:bg-slate-200 border border-slate-800 dark:border-slate-800 light:border-slate-300 px-6 py-4 rounded-xl backdrop-blur-sm mb-6">
+      <div class="flex items-center space-x-2 text-slate-400">
+        <i data-lucide="search" class="h-4 w-4 text-slate-500"></i>
+        <span class="text-sm font-mono text-slate-400">Filter Campaigns by Platform:</span>
+      </div>
+      
+      <!-- Platform Dropdown Filter -->
+      <select id="platform-select-filter" onchange="applyPlatformFilter()" class="bg-slate-950 dark:bg-slate-950 light:bg-slate-300 border border-slate-800 dark:border-slate-800 light:border-slate-400 rounded-lg text-xs font-semibold text-slate-350 dark:text-slate-350 light:text-slate-700 py-1.5 px-3 focus:outline-none">
+        <option value="All">All Platforms</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Google Ads">Google Ads</option>
+        <option value="YouTube">YouTube</option>
+      </select>
+    </section>
+
+    <!-- Table Container -->
+    <section class="w-full bg-slate-900/90 dark:bg-slate-900/90 light:bg-slate-200/80 border border-slate-800 dark:border-slate-800 light:border-slate-300 rounded-xl overflow-hidden backdrop-blur-sm shadow-2xl">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="campaign-table">
+          <thead>
+            <tr class="bg-slate-950 border-b border-slate-800 text-[11px] font-mono uppercase tracking-wider text-slate-400 select-none">
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 hover:text-white" onclick="sortData('date')">
+                <div class="flex items-center gap-1">
+                  Launch Date <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 hover:text-white" onclick="sortData('name')">
+                <div class="flex items-center gap-1">
+                  Campaign Name <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 hover:text-white" onclick="sortData('platform')">
+                <div class="flex items-center gap-1">
+                  Platform <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 text-right hover:text-white" onclick="sortData('clicks')">
+                <div class="flex items-center justify-end gap-1">
+                  Clicks <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 text-right hover:text-white" onclick="sortData('conversions')">
+                <div class="flex items-center justify-end gap-1">
+                  Conversions <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 text-right hover:text-white" onclick="sortData('spend')">
+                <div class="flex items-center justify-end gap-1">
+                  Spend <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 text-right hover:text-white" onclick="sortData('revenue')">
+                <div class="flex items-center justify-end gap-1">
+                  Revenue <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+              <th class="py-4 px-6 cursor-pointer hover:bg-slate-900/60 text-right hover:text-white" onclick="sortData('status')">
+                <div class="flex items-center justify-end gap-1">
+                  Status <i data-lucide="arrow-up-down" class="h-3 w-3"></i>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300 dark:text-slate-300 light:text-slate-700" id="table-body">
+            <!-- Rendered dynamically -->
+            <tr>
+              <td colspan="8" class="py-8 text-center text-slate-500 font-mono">
+                Initiating database readout...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =================================================== -->
+  <!-- LAUNCH CAMPAIGN MODAL (Overlay) -->
+  <!-- =================================================== -->
+  <div id="campaign-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-space-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 transition-all duration-300 transform scale-95 opacity-0" id="modal-panel">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="rocket" class="h-5 w-5 text-pink-400"></i>
+          Launch Custom Gravity Campaign
+        </h3>
+        <button onclick="toggleCampaignModal(false)" class="p-1.5 hover:bg-slate-800/60 hover:text-white text-slate-400 rounded-lg transition-colors">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <!-- Error box inside modal -->
+      <div id="modal-error" class="hidden p-3.5 bg-red-950/20 border border-red-500/20 text-red-400 font-mono text-xs rounded-xl"></div>
+
+      <!-- Form -->
+      <form id="campaign-form" onsubmit="submitNewCampaign(event)" class="space-y-4">
+        
+        <!-- Campaign Name -->
+        <div>
+          <label for="modal-name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Campaign Name</label>
+          <input type="text" id="modal-name" placeholder="e.g. Hover Shoes Launch" class="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200" required />
+        </div>
+
+        <!-- Platform Select -->
+        <div>
+          <label for="modal-platform" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Platform</label>
+          <select id="modal-platform" class="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200">
+            <option value="Instagram">Instagram</option>
+            <option value="Google Ads">Google Ads</option>
+            <option value="YouTube">YouTube</option>
+          </select>
+        </div>
+
+        <!-- Launch Date -->
+        <div>
+          <label for="modal-date" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Launch Date</label>
+          <input type="date" id="modal-date" class="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200" required />
+        </div>
+
+        <!-- Grid of values (Clicks, Conversions) -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="modal-clicks" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Clicks</label>
+            <input type="number" id="modal-clicks" min="0" placeholder="500" class="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200" required />
+          </div>
+          <div>
+            <label for="modal-conversions" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Conversions</label>
+            <input type="number" id="modal-conversions" min="0" placeholder="50" class="w-full bg-slate-950 border border-slate-800 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200" required />
+          </div>
+        </div>
+
+        <!-- Grid of financial values (Spend, Revenue) -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="modal-spend" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Spend ($)</label>
+            <input type="number" id="modal-spend" min="0" step="0.01" placeholder="400.00" class="w-full bg-slate-950 border border-pink-500/30 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200" required />
+          </div>
+          <div>
+            <label for="modal-revenue" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Revenue ($)</label>
+            <input type="number" id="modal-revenue" min="0" step="0.01" placeholder="1200.00" class="w-full bg-slate-950 border border-pink-500/30 focus:border-pink-500 rounded-lg py-2 px-3 text-sm text-slate-200 focus:outline-none transition-all duration-200" required />
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="toggleCampaignModal(false)" class="px-4 py-2 border border-slate-800 bg-transparent text-slate-400 hover:text-white rounded-lg text-sm font-semibold transition-colors">
+            Cancel
+          </button>
+          <button type="submit" id="modal-submit-btn" class="px-5 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-lg text-sm font-semibold shadow-glow-pink transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
+            Launch Campaign
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Load static campaigns script -->
+  <script src="/static/js/campaigns.js"></script>
+  <script>
+    // Initialize Lucide icons & Restore theme
+    lucide.createIcons();
+    initTheme();
+
+    function initTheme() {
+      const theme = localStorage.getItem('theme') || 'dark';
+      const body = document.body;
+      const themeIcon = document.getElementById('theme-icon');
+
+      body.className = body.className.replace(/dark|light/g, '').trim();
+
+      if (theme === 'dark') {
+        body.classList.add('dark');
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        body.classList.add('light');
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.classList.contains('dark') ? 'dark' : 'light';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', nextTheme);
+      initTheme();
+    }
+  </script>
+</body>
+</html>
