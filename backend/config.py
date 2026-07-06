@@ -26,7 +26,7 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'mov', 'webm'}
     
     # Ollama settings
-    OLLAMA_URL = os.getenv('OLLAMA_URL', 'http://localhost:11434/api')
+    OLLAMA_URL = os.getenv('OLLAMA_URL', 'https://phosphate-stuffed-skedaddle.ngrok-free.dev')
     OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'qwen2.5:0.5b')
     OLLAMA_TIMEOUT = int(os.getenv('OLLAMA_TIMEOUT', '90'))
     OLLAMA_MAX_TOKENS = int(os.getenv('OLLAMA_MAX_TOKENS', '2048'))

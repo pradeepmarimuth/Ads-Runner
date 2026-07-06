@@ -8,7 +8,7 @@ import requests
 import json
 import sys
 
-OLLAMA_URL = "http://localhost:11434/api"
+OLLAMA_URL = "https://phosphate-stuffed-skedaddle.ngrok-free.dev"
 GREEN = '\033[92m'
 RED = '\033[91m'
 YELLOW = '\033[93m'
