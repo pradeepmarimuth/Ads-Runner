@@ -1,8 +1,17 @@
 import os, re, datetime, json, random
 from functools import wraps
+from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from models import db, User, Post, PostLike, Comment, Message, Connection, Campaign, CampaignLog
+
+# ─────────────────────────────────────────────
+# LOAD ENVIRONMENT VARIABLES
+# This must be called FIRST, before any os.getenv() calls.
+# Locally it reads from .env; on production the host platform
+# injects env vars directly (Render / Railway / Heroku / Fly.io etc.)
+# ─────────────────────────────────────────────
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "quantum-antigrav-secret-9000")
@@ -12,9 +21,18 @@ db_path = os.path.abspath(db_path).replace('\\', '/')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ─────────────────────────────────────────────
+# SECURITY CONFIGURATION (reads from env vars)
+# On deployment, set these in your platform's dashboard
+# ─────────────────────────────────────────────
+app.config['SESSION_COOKIE_SECURE']   = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+app.config['SESSION_COOKIE_HTTPONLY'] = os.getenv('SESSION_COOKIE_HTTPONLY', 'True').lower() == 'true'
+app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config['PERMANENT_SESSION_LIFETIME'] = int(os.getenv('PERMANENT_SESSION_LIFETIME', '3600'))
+
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_UPLOAD_SIZE', str(10 * 1024 * 1024)))
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'mov', 'webm'}
 
 db.init_app(app)
@@ -705,6 +723,67 @@ def query_ollama_chat(messages):
         print(f"Ollama chat query failed: {e}")
     return None
 
+# ─────────────────────────────────────────────
+# GEMINI AI — Free, ChatGPT-quality answers
+# Get your free key at: https://aistudio.google.com/apikey
+# ─────────────────────────────────────────────
+def query_gemini(prompt):
+    """
+    Query Google Gemini 1.5 Flash for a single prompt.
+    Returns the text response or None on failure.
+    """
+    api_key = os.getenv('GEMINI_API_KEY', '').strip()
+    if not api_key or api_key.startswith('your-gemini'):
+        return None
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"Gemini query failed: {e}")
+    return None
+
+def query_gemini_chat(messages):
+    """
+    Query Google Gemini 1.5 Flash with a full conversation history.
+    messages is a list of {role, content} dicts (OpenAI format).
+    Returns the text response or None on failure.
+    """
+    api_key = os.getenv('GEMINI_API_KEY', '').strip()
+    if not api_key or api_key.startswith('your-gemini'):
+        return None
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+
+        # Extract system prompt and chat history
+        system_prompt = ''
+        chat_history = []
+        for msg in messages:
+            if msg['role'] == 'system':
+                system_prompt = msg['content']
+            elif msg['role'] == 'user':
+                chat_history.append({'role': 'user', 'parts': [msg['content']]})
+            elif msg['role'] == 'assistant':
+                chat_history.append({'role': 'model', 'parts': [msg['content']]})
+
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            system_instruction=system_prompt or 'You are a helpful AI assistant.'
+        )
+        # Start chat with history (all but last user message)
+        history = chat_history[:-1] if len(chat_history) > 1 else []
+        last_user_msg = chat_history[-1]['parts'][0] if chat_history else ''
+
+        chat = model.start_chat(history=history)
+        response = chat.send_message(last_user_msg)
+        return response.text
+    except Exception as e:
+        print(f"Gemini chat query failed: {e}")
+    return None
+
 @app.route('/api/generate-caption', methods=['POST'])
 @login_required
 def api_generate_caption():
@@ -714,27 +793,32 @@ def api_generate_caption():
         return jsonify({'message': 'productName required'}), 400
 
     # 1. Try local Ollama first
-    prompt = f"Generate 3 anti-gravity marketing slogans for the product: {name}. Return a JSON object with a single key 'captions' containing a list of 3 strings. Example: {{\"captions\": [\"Slogan 1\", \"Slogan 2\", \"Slogan 3\"]}}"
-    ollama_resp = query_ollama(prompt, json_mode=True)
+    caption_prompt = f"Generate 3 creative anti-gravity marketing slogans for: {name}. Return JSON: {{\"captions\": [\"Slogan 1\", \"Slogan 2\", \"Slogan 3\"]}}"
+    ollama_resp = query_ollama(caption_prompt, json_mode=True)
     if ollama_resp:
         cleaned_json = clean_json_response(ollama_resp)
         if cleaned_json and 'captions' in cleaned_json and isinstance(cleaned_json['captions'], list):
-            # Normalize captions elements to strings
-            caps = []
-            for item in cleaned_json['captions']:
-                if isinstance(item, dict):
-                    val = item.get('content') or item.get('value') or item.get('slogan') or item.get('text') or str(item)
-                    caps.append(val)
-                elif isinstance(item, str):
-                    caps.append(item)
+            caps = [str(item.get('content') or item.get('slogan') or item) if isinstance(item, dict) else item
+                    for item in cleaned_json['captions']]
+            caps = [c for c in caps if isinstance(c, str)]
             if caps:
                 return jsonify({'captions': caps[:3], 'isMock': False, 'ai_source': 'Ollama'}), 200
 
-    # 2. Fall back to OpenAI
+    # 2. Try Gemini (free, ChatGPT-quality)
+    gemini_prompt = f"Generate exactly 3 creative anti-gravity marketing slogans for the product: {name}. Return only valid JSON: {{\"captions\": [\"slogan1\", \"slogan2\", \"slogan3\"]}}"
+    gemini_resp = query_gemini(gemini_prompt)
+    if gemini_resp:
+        cleaned_json = clean_json_response(gemini_resp)
+        if cleaned_json and 'captions' in cleaned_json:
+            caps = [str(c) for c in cleaned_json['captions'] if c][:3]
+            if caps:
+                return jsonify({'captions': caps, 'isMock': False, 'ai_source': 'Gemini'}), 200
+
+    # 3. Try OpenAI
     api_key = os.getenv('OPENAI_API_KEY', '').strip()
-    if api_key and api_key != 'your_openai_api_key_here':
+    if api_key and not api_key.startswith('sk-your-'):
         try:
-            from openai import OpenAI
+            from openai import OpenAI, RateLimitError, AuthenticationError
             client = OpenAI(api_key=api_key)
             resp = client.chat.completions.create(
                 model='gpt-4o-mini',
@@ -743,10 +827,14 @@ def api_generate_caption():
                 response_format={'type':'json_object'})
             result = json.loads(resp.choices[0].message.content)
             return jsonify({'captions': result.get('captions',[])[:3], 'isMock': False, 'ai_source': 'OpenAI'}), 200
-        except Exception:
-            pass
+        except RateLimitError:
+            print('OpenAI quota exceeded — falling back to mock.')
+        except AuthenticationError:
+            print('OpenAI invalid API key — falling back to mock.')
+        except Exception as e:
+            print(f'OpenAI error: {e}')
 
-    # 3. Fall back to mock helper
+    # 4. Mock fallback
     return jsonify({'captions': mock_captions(name), 'isMock': True}), 200
 
 @app.route('/api/generate-hashtags', methods=['POST'])
@@ -758,27 +846,33 @@ def api_generate_hashtags():
         return jsonify({'message': 'keyword required'}), 400
 
     # 1. Try local Ollama first
-    prompt = f"Generate 3 trending social media hashtags for the keyword: {kw}. Return a JSON object with a single key 'hashtags' containing a list of 3 strings (each starting with '#'). Example: {{\"hashtags\": [\"#Tag1\", \"#Tag2\", \"#Tag3\"]}}"
-    ollama_resp = query_ollama(prompt, json_mode=True)
+    hashtag_prompt = f"Generate 3 trending social media hashtags for: {kw}. Return JSON: {{\"hashtags\": [\"#Tag1\", \"#Tag2\", \"#Tag3\"]}}"
+    ollama_resp = query_ollama(hashtag_prompt, json_mode=True)
     if ollama_resp:
         cleaned_json = clean_json_response(ollama_resp)
         if cleaned_json and 'hashtags' in cleaned_json and isinstance(cleaned_json['hashtags'], list):
-            tags = []
-            for item in cleaned_json['hashtags']:
-                if isinstance(item, dict):
-                    val = item.get('tag') or item.get('name') or item.get('value') or item.get('text') or str(item)
-                    tags.append(val)
-                elif isinstance(item, str):
-                    tags.append(item)
-            cleaned_tags = [t if t.startswith('#') else f'#{t}' for t in tags]
+            tags = [str(item.get('tag') or item.get('name') or item) if isinstance(item, dict) else item
+                    for item in cleaned_json['hashtags']]
+            cleaned_tags = [t if t.startswith('#') else f'#{t}' for t in tags if isinstance(t, str)]
             if cleaned_tags:
                 return jsonify({'hashtags': cleaned_tags[:3], 'isMock': False, 'ai_source': 'Ollama'}), 200
 
-    # 2. Fall back to OpenAI
+    # 2. Try Gemini (free, ChatGPT-quality)
+    gemini_prompt = f"Generate exactly 3 trending social media hashtags for keyword: {kw}. Return only JSON: {{\"hashtags\": [\"#Tag1\", \"#Tag2\", \"#Tag3\"]}}"
+    gemini_resp = query_gemini(gemini_prompt)
+    if gemini_resp:
+        cleaned_json = clean_json_response(gemini_resp)
+        if cleaned_json and 'hashtags' in cleaned_json:
+            tags = [str(t) for t in cleaned_json['hashtags'] if t]
+            cleaned_tags = [t if t.startswith('#') else f'#{t}' for t in tags][:3]
+            if cleaned_tags:
+                return jsonify({'hashtags': cleaned_tags, 'isMock': False, 'ai_source': 'Gemini'}), 200
+
+    # 3. Try OpenAI
     api_key = os.getenv('OPENAI_API_KEY', '').strip()
-    if api_key and api_key != 'your_openai_api_key_here':
+    if api_key and not api_key.startswith('sk-your-'):
         try:
-            from openai import OpenAI
+            from openai import OpenAI, RateLimitError, AuthenticationError
             client = OpenAI(api_key=api_key)
             resp = client.chat.completions.create(
                 model='gpt-4o-mini',
@@ -787,10 +881,14 @@ def api_generate_hashtags():
                 response_format={'type':'json_object'})
             result = json.loads(resp.choices[0].message.content)
             return jsonify({'hashtags': result.get('hashtags',[])[:3], 'isMock': False, 'ai_source': 'OpenAI'}), 200
-        except Exception:
-            pass
+        except RateLimitError:
+            print('OpenAI quota exceeded — falling back to mock.')
+        except AuthenticationError:
+            print('OpenAI invalid API key — falling back to mock.')
+        except Exception as e:
+            print(f'OpenAI error: {e}')
 
-    # 3. Fall back to mock helper
+    # 4. Mock fallback
     return jsonify({'hashtags': mock_hashtags(kw), 'isMock': True}), 200
 
 @app.route('/api/analyze-link', methods=['POST'])
@@ -946,67 +1044,63 @@ def api_ai_chat():
                 
     context_str = "\n".join(context_parts) if context_parts else ""
     
-    # Form message payload for chat format models
+    # ─── Build system prompt (ChatGPT-like: factual, comprehensive, structured) ───
+    base_system = (
+        "You are an advanced AI assistant — like ChatGPT — with broad, accurate knowledge "
+        "about the real world: businesses, products, locations, people, history, science, technology, "
+        "marketing, and everything else.\n\n"
+        "CRITICAL RULES:\n"
+        "1. ALWAYS provide accurate, factual real-world information. Never make up or hallucinate details.\n"
+        "2. When asked about a SPECIFIC business, product, brand, or location, provide:\n"
+        "   📍 Address and location details\n"
+        "   📞 Phone numbers and contact info (if publicly known)\n"
+        "   🌐 Website and social media\n"
+        "   ⏰ Business hours (if publicly known)\n"
+        "   ⭐ Ratings, reviews, key facts\n"
+        "   💰 Pricing (if publicly known)\n"
+        "3. Structure every response with clear sections using **bold headers**.\n"
+        "4. Use bullet points (•) for lists and numbered lists for steps.\n"
+        "5. Use emojis as visual markers: 📍 📞 🌐 ⏰ ⭐ 💰 📊 🎯\n"
+        "6. For marketing questions: give detailed strategies, examples, and actionable advice.\n"
+        "7. For general knowledge questions: give thorough, educational answers.\n"
+        "8. If you genuinely don't know something, say so clearly — NEVER hallucinate facts.\n"
+        "9. Minimum response length: 3-5 paragraphs or equivalent structured content.\n\n"
+    )
+
     if context_str:
         system_content = (
-            f"You are an expert AI marketing assistant with comprehensive knowledge in digital marketing, advertising, and campaign optimization.\n\n"
-            f"USER DATABASE CONTEXT:\n"
-            f"=========================================\n"
+            base_system +
+            f"USER CAMPAIGN DATABASE:\n"
+            f"{'='*50}\n"
             f"{context_str}\n"
-            f"=========================================\n\n"
-            f"RESPONSE GUIDELINES:\n"
-            f"1. Provide COMPREHENSIVE and DETAILED answers (minimum 4-6 paragraphs for general queries)\n"
-            f"2. Structure your response with clear sections and formatting:\n"
-            f"   - Use **bold** for important terms, headers, and key points\n"
-            f"   - Use bullet points (•) for lists and features\n"
-            f"   - Use numbered lists (1., 2., 3.) for steps or sequences\n"
-            f"   - Add line breaks between sections for better readability\n"
-            f"3. When answering queries about products, services, businesses, or locations:\n"
-            f"   - Provide specific, actionable information\n"
-            f"   - Include relevant details like contact info, addresses, hours if applicable to the topic\n"
-            f"   - Organize information in clearly labeled sections\n"
-            f"   - Use emojis strategically (📍 locations, 📞 contact, ⏰ hours, 🌐 websites, 📊 stats)\n"
-            f"4. Reference the user's campaign data and metrics when relevant\n"
-            f"5. Provide actionable insights, specific recommendations, and detailed explanations\n"
-            f"6. If you don't have specific factual information, provide comprehensive general guidance and best practices\n\n"
-            f"Answer the user's query with rich detail and structure:"
+            f"{'='*50}\n"
+            f"Reference the above campaign data when relevant to the user's question."
         )
     else:
-        system_content = (
-            f"You are an expert AI marketing assistant with comprehensive knowledge across all aspects of digital marketing.\n\n"
-            f"RESPONSE GUIDELINES:\n"
-            f"1. Provide COMPREHENSIVE and DETAILED answers (minimum 4-6 paragraphs)\n"
-            f"2. Structure responses clearly:\n"
-            f"   - Use **bold** for important terms and section headers\n"
-            f"   - Use bullet points (•) for lists\n"
-            f"   - Use numbered lists for steps/sequences\n"
-            f"   - Add line breaks between sections\n"
-            f"3. When asked about specific topics (products, companies, marketing strategies):\n"
-            f"   - Provide in-depth explanations\n"
-            f"   - Include multiple aspects and perspectives\n"
-            f"   - Give practical, actionable advice\n"
-            f"   - Use examples where helpful\n"
-            f"4. Format responses for easy reading with clear visual structure\n"
-            f"5. Use emojis strategically for visual markers\n\n"
-            f"User Query: {message}\n\n"
-            f"Provide a comprehensive, well-structured response:"
-        )
-    
+        system_content = base_system + "Answer the user's question comprehensively and accurately."
+
     messages_payload = [{"role": "system", "content": system_content}]
     messages_payload.extend(CHAT_HISTORIES[uid])
-    
-    # 1. Try local Ollama chat first
+
+    # 1. Try local Ollama (only available on localhost)
     ollama_resp = query_ollama_chat(messages_payload)
     if ollama_resp:
         response_text = ollama_resp.strip()
         CHAT_HISTORIES[uid].append({"role": "assistant", "content": response_text})
         return jsonify({'response': response_text, 'isMock': False, 'ai_source': 'Ollama'}), 200
-        
-    # 2. OpenAI Fallback
+
+    # 2. Try Gemini (FREE — works on Render and any cloud deployment)
+    gemini_resp = query_gemini_chat(messages_payload)
+    if gemini_resp:
+        response_text = gemini_resp.strip()
+        CHAT_HISTORIES[uid].append({"role": "assistant", "content": response_text})
+        return jsonify({'response': response_text, 'isMock': False, 'ai_source': 'Gemini'}), 200
+
+    # 3. Try OpenAI (paid)
     api_key = os.getenv('OPENAI_API_KEY', '').strip()
-    if api_key and api_key != 'your_openai_api_key_here':
+    if api_key and not api_key.startswith('sk-your-'):
         try:
-            from openai import OpenAI
+            from openai import OpenAI, RateLimitError, AuthenticationError
             client = OpenAI(api_key=api_key)
             resp = client.chat.completions.create(
                 model='gpt-4o-mini',
@@ -1015,8 +1109,12 @@ def api_ai_chat():
             response_text = resp.choices[0].message.content.strip()
             CHAT_HISTORIES[uid].append({"role": "assistant", "content": response_text})
             return jsonify({'response': response_text, 'isMock': False, 'ai_source': 'OpenAI'}), 200
-        except Exception:
-            pass
+        except RateLimitError:
+            print('OpenAI quota exceeded — falling back to mock.')
+        except AuthenticationError:
+            print('OpenAI invalid API key — falling back to mock.')
+        except Exception as e:
+            print(f'OpenAI chat error: {e}')
             
     # 3. Mock fallback
     if is_asking_about_db:
@@ -1143,4 +1241,9 @@ with app.app_context():
     _seed_system()
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    # In production, gunicorn is used (see Procfile) and this block is NOT executed.
+    # For local development, bind to 127.0.0.1 with debug from env.
+    debug_mode = os.getenv('DEBUG', 'True').lower() == 'true'
+    port = int(os.getenv('PORT', '5000'))
+    host = os.getenv('HOST', '0.0.0.0')
+    app.run(host=host, port=port, debug=debug_mode)
