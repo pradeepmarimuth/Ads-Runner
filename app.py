@@ -745,7 +745,7 @@ def query_gemini(prompt):
         return response.text
     except Exception as e:
         print(f"Gemini query failed: {e}")
-    return None
+        return f"GEMINI_ERROR: {str(e)}"
 
 def query_gemini_chat(messages):
     """
@@ -787,7 +787,7 @@ def query_gemini_chat(messages):
         return response.text
     except Exception as e:
         print(f"Gemini chat query failed: {e}")
-    return None
+        return f"GEMINI_ERROR: {str(e)}"
 
 @app.route('/api/generate-caption', methods=['POST'])
 @login_required
