@@ -739,7 +739,7 @@ def query_gemini(prompt):
         from google import genai
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash',
             contents=prompt
         )
         return response.text
@@ -780,7 +780,7 @@ def query_gemini_chat(messages):
         )
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash',
             contents=contents,
             config=config
         )
