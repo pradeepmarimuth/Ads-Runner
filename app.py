@@ -729,17 +729,19 @@ def query_ollama_chat(messages):
 # ─────────────────────────────────────────────
 def query_gemini(prompt):
     """
-    Query Google Gemini 1.5 Flash for a single prompt.
+    Query Google Gemini using the new google-genai SDK.
     Returns the text response or None on failure.
     """
     api_key = os.getenv('GEMINI_API_KEY', '').strip()
     if not api_key or api_key.startswith('your-gemini'):
         return None
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt)
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt
+        )
         return response.text
     except Exception as e:
         print(f"Gemini query failed: {e}")
@@ -747,7 +749,7 @@ def query_gemini(prompt):
 
 def query_gemini_chat(messages):
     """
-    Query Google Gemini 1.5 Flash with a full conversation history.
+    Query Google Gemini with a full conversation history using the new google-genai SDK.
     messages is a list of {role, content} dicts (OpenAI format).
     Returns the text response or None on failure.
     """
@@ -755,30 +757,33 @@ def query_gemini_chat(messages):
     if not api_key or api_key.startswith('your-gemini'):
         return None
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
+        from google import genai
+        from google.genai import types
 
-        # Extract system prompt and chat history
+        client = genai.Client(api_key=api_key)
+
+        # Extract system prompt and build contents list
         system_prompt = ''
-        chat_history = []
+        contents = []
         for msg in messages:
             if msg['role'] == 'system':
                 system_prompt = msg['content']
             elif msg['role'] == 'user':
-                chat_history.append({'role': 'user', 'parts': [msg['content']]})
+                contents.append(types.Content(role='user', parts=[types.Part(text=msg['content'])]))
             elif msg['role'] == 'assistant':
-                chat_history.append({'role': 'model', 'parts': [msg['content']]})
+                contents.append(types.Content(role='model', parts=[types.Part(text=msg['content'])]))
 
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
-            system_instruction=system_prompt or 'You are a helpful AI assistant.'
+        config = types.GenerateContentConfig(
+            system_instruction=system_prompt or 'You are a helpful AI assistant.',
+            temperature=0.7,
+            max_output_tokens=2048,
         )
-        # Start chat with history (all but last user message)
-        history = chat_history[:-1] if len(chat_history) > 1 else []
-        last_user_msg = chat_history[-1]['parts'][0] if chat_history else ''
 
-        chat = model.start_chat(history=history)
-        response = chat.send_message(last_user_msg)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=contents,
+            config=config
+        )
         return response.text
     except Exception as e:
         print(f"Gemini chat query failed: {e}")
